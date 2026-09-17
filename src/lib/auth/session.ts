@@ -2,10 +2,11 @@
  * Web session management (server-side sessions in an http-only cookie).
  * The raw token is only ever in the cookie; the DB stores its hash.
  */
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { and, eq, gt, isNull } from 'drizzle-orm'
 import { db } from '../db/index'
 import { sessions, users, type User } from '../db/schema/identity'
+import { verifyAccessToken } from './jwt'
 import { generateToken, hashToken } from './tokens'
 import { isProduction } from '../env/index'
 import { SESSION_COOKIE, SESSION_TTL_SECONDS } from './config'
@@ -63,12 +64,30 @@ export async function getUserForToken(token: string): Promise<User | null> {
   return row.user
 }
 
-/** Read the current session cookie and resolve the user (or null). */
+/** Resolve the user for a mobile Bearer JWT (Authorization header), or null. */
+async function getUserForBearer(): Promise<User | null> {
+  const h = await headers()
+  const auth = h.get('authorization')
+  if (!auth?.startsWith('Bearer ')) return null
+  const payload = await verifyAccessToken(auth.slice(7))
+  if (!payload) return null
+  const [user] = await db.select().from(users).where(eq(users.id, payload.userId)).limit(1)
+  if (!user || user.status === 'deleted') return null
+  return user
+}
+
+/**
+ * Resolve the current user from either a web session cookie OR a mobile Bearer
+ * JWT. This lets every route serve both clients (build prompt: shared API).
+ */
 export async function getCurrentUser(): Promise<User | null> {
   const store = await cookies()
   const token = store.get(SESSION_COOKIE)?.value
-  if (!token) return null
-  return getUserForToken(token)
+  if (token) {
+    const user = await getUserForToken(token)
+    if (user) return user
+  }
+  return getUserForBearer()
 }
 
 /** Revoke the current session and clear the cookie. */

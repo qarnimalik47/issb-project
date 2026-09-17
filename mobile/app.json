@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "ISSB Prep",
+    "slug": "issb-prep",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "issbprep",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pop.issbprep",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used to photograph your handwritten answer sheets.",
+        "NSMicrophoneUsageDescription": "Used to record your lecturette and interview answers."
+      }
+    },
+    "android": {
+      "package": "com.pop.issbprep",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "POST_NOTIFICATIONS"]
+    },
+    "plugins": ["expo-notifications", "expo-image-picker", "expo-av"],
+    "extra": {
+      "apiBaseUrl": "http://127.0.0.1:4310"
+    }
+  }
+}

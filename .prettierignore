@@ -12,3 +12,6 @@ package-lock.json
 
 # The master build spec is authored by the product owner — never reformat it.
 ISSB-PREP-PLATFORM-BUILD-PROMPT.md
+
+# Mobile app has its own toolchain
+mobile

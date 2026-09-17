@@ -7,10 +7,39 @@ battery under realistic conditions, with structured, rubric-based feedback.
 > with, endorsed by, or connected to the ISSB or the Pakistan Armed Forces, and
 > it does **not** predict, promise, or guarantee any selection outcome.
 
-**Current status: Phase 0 (Foundation) complete.** The application is an empty
-but fully runnable, tested, documented shell. Product features arrive from
-Phase 1 onward — see [`ISSB-PREP-PLATFORM-BUILD-PROMPT.md`](./ISSB-PREP-PLATFORM-BUILD-PROMPT.md)
-for the full phased plan.
+**Current status: Phases 0–10 implemented.** See
+[`ISSB-PREP-PLATFORM-BUILD-PROMPT.md`](./ISSB-PREP-PLATFORM-BUILD-PROMPT.md) for
+the full plan.
+
+What's built:
+
+- **Foundation** — Next.js 16 + strict TS, Zod env, port-conflict handling,
+  Drizzle, structured logging, health checks, backup/restore, docs + ADRs.
+- **Identity** — email/phone OTP auth, web sessions + mobile JWT/refresh, RBAC,
+  bilingual (English/Urdu, RTL) UI, rate limiting, audit log, export/delete.
+- **Admin & content** — question CRUD, queued PDF import (staging/review/dedup),
+  rubric management, storage abstraction + signed URLs.
+- **Objective engine** — server-authoritative timed MCQ, autosave/resume,
+  deterministic scoring, one-active-attempt, analytics.
+- **Written capture** — WAT/SCT/SRT/essay/story players, paper mode + queued
+  OCR + mandatory confirmation.
+- **AI evaluation** — provider-agnostic (mock + Anthropic/OpenAI/Google),
+  versioned prompts, rubric-driven strict validation, dual cross-check, quota
+  enforcement, prompt-injection defences, golden-set + accuracy harness,
+  distress handling.
+- **Profile** — cross-test scores with evidence, contradiction detection,
+  confidence, OPI analysis, study plan, PDF report, full simulation.
+- **Voice** — browser recording + STT, lecturette analysis, PIQ-based mock
+  interview, GD/GPE, GTO explainers.
+- **GK** — SM-2 flashcards, RSS ingestion, editorial approval, digest, quizzes.
+- **Payments/ops** — mock + JazzCash/Easypaisa gateways, idempotent webhooks,
+  subscriptions, invoices, refunds, expert-review queue, admin dashboard,
+  incident runbook.
+- **Mobile** — Expo/React Native app (`mobile/`) consuming the same API with
+  offline flashcards/digest and queued submission sync.
+
+Background jobs (PDF import, OCR, STT, AI evaluation, news ingestion) run in a
+worker: **`npm run worker`** (separate process).
 
 ---
 

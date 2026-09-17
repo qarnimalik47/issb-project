@@ -40,3 +40,7 @@ logs
 
 # Drizzle: migrations ARE committed; only ignore local studio artifacts
 /drizzle/meta/_journal.local.json
+
+# Mobile
+/mobile/node_modules
+/mobile/.expo
