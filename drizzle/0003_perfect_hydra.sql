@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "written_responses_attempt_item_key" ON "written_responses" USING btree ("attempt_id","item_ref");

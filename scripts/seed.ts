@@ -9,10 +9,17 @@
 import 'dotenv/config'
 import { sql as rawSql } from '../src/lib/db/index'
 import { db } from '../src/lib/db/index'
-import { appMetadata, testTypes, questions } from '../src/lib/db/schema'
+import { appMetadata, testTypes, questions, rubrics, plans } from '../src/lib/db/schema'
 import { TEST_TYPES } from '../src/lib/db/seed-data/test-types'
 import { SAMPLE_QUESTIONS } from '../src/lib/db/seed-data/sample-questions'
+import { WRITTEN_ITEMS } from '../src/lib/db/seed-data/written-items'
+import {
+  DEFAULT_RUBRIC_CRITERIA,
+  DEFAULT_RUBRIC_OUTPUT_SCHEMA,
+} from '../src/lib/db/seed-data/rubrics'
+import { PLANS } from '../src/lib/billing/plans'
 import { questionContentHash } from '../src/lib/import/parse'
+import { eq, and } from 'drizzle-orm'
 
 async function main() {
   const rows = [
@@ -87,6 +94,72 @@ async function main() {
     if (res[0]) seededQ++
   }
   console.warn(`✓ Seeded ${seededQ} sample question(s).`)
+
+  // Sample written items (WAT/SCT/SRT/essay/etc).
+  let seededW = 0
+  for (const wi of WRITTEN_ITEMS) {
+    const testTypeId = typeByCode.get(wi.testTypeCode)
+    if (!testTypeId) continue
+    const contentHash = questionContentHash(wi.stemEn, [])
+    const res = await db
+      .insert(questions)
+      .values({
+        testTypeId,
+        stemEn: wi.stemEn,
+        stemUr: wi.stemUr,
+        topic: wi.topic,
+        contentHash,
+        status: 'published',
+      })
+      .onConflictDoUpdate({
+        target: questions.contentHash,
+        set: { status: 'published', updatedAt: new Date() },
+      })
+      .returning({ id: questions.id })
+    if (res[0]) seededW++
+  }
+  console.warn(`✓ Seeded ${seededW} written item(s).`)
+
+  // Default rubric (v1) for each rubric-scored test type.
+  const rubricTypes = (await db.select().from(testTypes)).filter((t) => t.scoringType === 'rubric')
+  let seededR = 0
+  for (const tt of rubricTypes) {
+    const existing = await db
+      .select({ id: rubrics.id })
+      .from(rubrics)
+      .where(and(eq(rubrics.testTypeId, tt.id), eq(rubrics.version, 1)))
+      .limit(1)
+    if (existing[0]) continue
+    await db.insert(rubrics).values({
+      testTypeId: tt.id,
+      version: 1,
+      name: `${tt.nameEn} — default rubric`,
+      criteria: DEFAULT_RUBRIC_CRITERIA,
+      outputSchema: DEFAULT_RUBRIC_OUTPUT_SCHEMA,
+      status: 'published',
+    })
+    seededR++
+  }
+  console.warn(`✓ Seeded ${seededR} rubric(s).`)
+
+  // Plans.
+  for (const [code, p] of Object.entries(PLANS)) {
+    await db
+      .insert(plans)
+      .values({
+        code,
+        nameEn: p.nameEn,
+        nameUr: p.nameUr,
+        priceCents: p.priceCents,
+        currency: p.currency,
+        entitlements: p.entitlements,
+      })
+      .onConflictDoUpdate({
+        target: plans.code,
+        set: { entitlements: p.entitlements, priceCents: p.priceCents },
+      })
+  }
+  console.warn(`✓ Seeded ${Object.keys(PLANS).length} plan(s).`)
 }
 
 try {

@@ -31,6 +31,7 @@
     "db:studio": "drizzle-kit studio",
     "db:setup": "bash scripts/db-setup.sh",
     "set-role": "tsx scripts/set-role.ts",
+    "eval:accuracy": "tsx scripts/eval-accuracy.ts",
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
     "ci": "node scripts/ci.mjs",

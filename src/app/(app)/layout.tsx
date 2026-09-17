@@ -29,6 +29,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             Practice
           </a>
           <a
+            href="/written"
+            className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+          >
+            Written
+          </a>
+          <a
             href="/profile"
             className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
           >

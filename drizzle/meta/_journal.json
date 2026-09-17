@@ -22,6 +22,20 @@
       "when": 1789673500835,
       "tag": "0002_secret_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789674133915,
+      "tag": "0003_perfect_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789674779635,
+      "tag": "0004_goofy_husk",
+      "breakpoints": true
     }
   ]
 }

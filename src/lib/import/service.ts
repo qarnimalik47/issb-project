@@ -38,7 +38,7 @@ export async function createImportBatch(input: CreateBatchInput): Promise<string
   await storage.put(storageKey, input.data, { mime: 'application/pdf' })
   await db.update(importBatches).set({ meta: { storageKey } }).where(eq(importBatches.id, id))
 
-  await enqueue(QUEUE_NAMES.pdfImport, 'parse', { batchId: id }, { jobId: `pdf-import:${id}` })
+  await enqueue(QUEUE_NAMES.pdfImport, 'parse', { batchId: id }, { jobId: `pdf-import_${id}` })
   return id
 }
 

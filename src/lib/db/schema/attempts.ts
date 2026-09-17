@@ -106,7 +106,10 @@ export const writtenResponses = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('written_responses_attempt_idx').on(t.attemptId)],
+  (t) => [
+    index('written_responses_attempt_idx').on(t.attemptId),
+    uniqueIndex('written_responses_attempt_item_key').on(t.attemptId, t.itemRef),
+  ],
 )
 
 /**
