@@ -12,6 +12,7 @@ import { isUniqueViolation } from '../db/errors'
 import { storage } from '../storage/index'
 import { enqueue, QUEUE_NAMES } from '../queue/index'
 import { getOcrAdapter } from '../ocr/index'
+import { getSttAdapter } from '../stt/index'
 
 export type WrittenItem = {
   ref: string
@@ -239,7 +240,72 @@ export async function processOcr(writtenResponseId: string, storageKey: string):
     .where(eq(writtenResponses.id, writtenResponseId))
 }
 
-/** Mandatory user confirmation of OCR text before it is used (build prompt §4 Phase 4). */
+/**
+ * Voice mode (Phase 7): upload a recorded answer. Stored as a 'voice' media
+ * asset; STT runs in the background and fills the transcript for the user to
+ * confirm — reusing the same confirm flow as OCR.
+ */
+export async function uploadAudio(
+  userId: string,
+  attemptId: string,
+  ref: string,
+  audio: Buffer,
+  mime: string,
+  durationSec?: number,
+): Promise<void> {
+  const attempt = await loadOwned(userId, attemptId)
+  const config = (attempt.config ?? { items: [], timing: {} }) as WrittenConfig
+  assertItem(config, ref)
+  const item = config.items.find((i) => i.ref === ref)!
+
+  const storageKey = `voice/${attemptId}/${ref}-${Date.now()}`
+  await storage.put(storageKey, audio, { mime })
+  const [media] = await db
+    .insert(mediaAssets)
+    .values({
+      kind: 'voice',
+      storageKey,
+      mime,
+      sizeBytes: audio.length,
+      createdBy: userId,
+      meta: { durationSec },
+    })
+    .returning({ id: mediaAssets.id })
+
+  const [wr] = await db
+    .insert(writtenResponses)
+    .values({
+      attemptId,
+      itemRef: ref,
+      prompt: item.prompt,
+      imageMediaId: media!.id,
+      timingMeta: durationSec ? { durationSec } : undefined,
+    })
+    .onConflictDoUpdate({
+      target: [writtenResponses.attemptId, writtenResponses.itemRef],
+      set: { imageMediaId: media!.id, ocrConfirmed: false, updatedAt: new Date() },
+    })
+    .returning({ id: writtenResponses.id })
+
+  await enqueue(
+    QUEUE_NAMES.stt,
+    'transcribe',
+    { writtenResponseId: wr!.id, storageKey },
+    { jobId: `stt_${wr!.id}` },
+  )
+}
+
+/** Worker step: transcribe an uploaded voice answer. */
+export async function processStt(writtenResponseId: string, storageKey: string): Promise<void> {
+  const audio = await storage.get(storageKey)
+  const result = await getSttAdapter().transcribe(audio, { lang: 'mixed' })
+  await db
+    .update(writtenResponses)
+    .set({ ocrText: result.text, updatedAt: new Date() })
+    .where(eq(writtenResponses.id, writtenResponseId))
+}
+
+/** Mandatory user confirmation of OCR/STT text before it is used. */
 export async function confirmOcr(
   userId: string,
   attemptId: string,

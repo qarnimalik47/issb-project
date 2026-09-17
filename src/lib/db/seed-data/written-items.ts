@@ -56,4 +56,51 @@ export const WRITTEN_ITEMS: SeedWrittenItem[] = [
     stemUr: 'اس جملے سے کہانی مکمل کریں: "آگے کا راستہ بند تھا، تو نوجوان افسر…"',
     topic: 'pointer',
   },
+  // Lecturette topics
+  {
+    testTypeCode: 'lecturette',
+    stemEn: 'The importance of discipline in life.',
+    stemUr: 'زندگی میں نظم و ضبط کی اہمیت۔',
+    topic: 'lecturette',
+  },
+  {
+    testTypeCode: 'lecturette',
+    stemEn: 'Role of youth in national development.',
+    stemUr: 'قومی ترقی میں نوجوانوں کا کردار۔',
+    topic: 'lecturette',
+  },
+  {
+    testTypeCode: 'lecturette',
+    stemEn: 'Technology: a blessing or a curse?',
+    stemUr: 'ٹیکنالوجی: نعمت یا زحمت؟',
+    topic: 'lecturette',
+  },
+  {
+    testTypeCode: 'lecturette',
+    stemEn: 'Teamwork versus individual effort.',
+    stemUr: 'ٹیم ورک بمقابلہ انفرادی کوشش۔',
+    topic: 'lecturette',
+  },
+  // Group discussion topics
+  {
+    testTypeCode: 'group_discussion',
+    stemEn: 'Should social media be regulated?',
+    stemUr: 'کیا سوشل میڈیا کو ریگولیٹ کیا جانا چاہیے؟',
+    topic: 'gd',
+  },
+  {
+    testTypeCode: 'group_discussion',
+    stemEn: 'Merit versus quota in national institutions.',
+    stemUr: 'قومی اداروں میں میرٹ بمقابلہ کوٹہ۔',
+    topic: 'gd',
+  },
+  // GPE scenario
+  {
+    testTypeCode: 'gpe',
+    stemEn:
+      'A bus has broken down on a remote road at night. One passenger is injured, a child is missing, and a nearby village needs to be warned of a flood upstream. You have one motorbike, two torches and 45 minutes. Prioritise and plan.',
+    stemUr:
+      'رات کو ایک دور دراز سڑک پر بس خراب ہو گئی ہے۔ ایک مسافر زخمی ہے، ایک بچہ لاپتہ ہے، اور قریبی گاؤں کو اوپر کی طرف سیلاب سے خبردار کرنا ہے۔ آپ کے پاس ایک موٹر سائیکل، دو ٹارچ اور 45 منٹ ہیں۔ ترجیح دیں اور منصوبہ بنائیں۔',
+    topic: 'gpe',
+  },
 ]

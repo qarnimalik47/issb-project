@@ -9,7 +9,7 @@ import 'dotenv/config'
 import type { Worker } from 'bullmq'
 import { createWorker, QUEUE_NAMES } from '../src/lib/queue/index'
 import { processImportBatch } from '../src/lib/import/service'
-import { processOcr } from '../src/lib/tests/written'
+import { processOcr, processStt } from '../src/lib/tests/written'
 import { evaluateWrittenResponse } from '../src/lib/eval/service'
 import { childLogger } from '../src/lib/logger/index'
 
@@ -25,6 +25,12 @@ workers.push(
 workers.push(
   createWorker<{ writtenResponseId: string; storageKey: string }>(QUEUE_NAMES.ocr, async (job) => {
     await processOcr(job.data.writtenResponseId, job.data.storageKey)
+  }),
+)
+
+workers.push(
+  createWorker<{ writtenResponseId: string; storageKey: string }>(QUEUE_NAMES.stt, async (job) => {
+    await processStt(job.data.writtenResponseId, job.data.storageKey)
   }),
 )
 

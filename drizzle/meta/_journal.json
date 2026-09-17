@@ -36,6 +36,13 @@
       "when": 1789674779635,
       "tag": "0004_goofy_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789675843684,
+      "tag": "0005_stiff_apocalypse",
+      "breakpoints": true
     }
   ]
 }
