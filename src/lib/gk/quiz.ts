@@ -41,7 +41,8 @@ export async function generateGkQuizFromArticles(limit = 10): Promise<{ created:
         stemEn,
         options,
         correctOption,
-        explanationEn: `This item is categorised under "${a.category}". ${a.issbAngle ?? ''}`.trim(),
+        explanationEn:
+          `This item is categorised under "${a.category}". ${a.issbAngle ?? ''}`.trim(),
         topic: 'current-affairs',
         contentHash,
         status: 'draft', // requires admin review before publication

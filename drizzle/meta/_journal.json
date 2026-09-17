@@ -50,6 +50,13 @@
       "when": 1789676441340,
       "tag": "0006_clean_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789676943788,
+      "tag": "0007_cloudy_the_renegades",
+      "breakpoints": true
     }
   ]
 }

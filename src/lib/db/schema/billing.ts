@@ -62,5 +62,85 @@ export const usageCounters = pgTable(
   (t) => [uniqueIndex('usage_counters_key').on(t.userId, t.metric, t.periodKey)],
 )
 
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    gateway: text('gateway').notNull(), // mock | jazzcash | easypaisa | card
+    planCode: text('plan_code').notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('PKR'),
+    status: text('status').notNull().default('pending'), // pending | paid | failed | refunded
+    // Gateway transaction reference — unique for webhook idempotency.
+    gatewayRef: text('gateway_ref').notNull(),
+    rawPayload: jsonb('raw_payload'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('payments_gateway_ref_key').on(t.gateway, t.gatewayRef),
+    index('payments_user_idx').on(t.userId),
+    index('payments_status_idx').on(t.status),
+  ],
+)
+
+export const invoices = pgTable(
+  'invoices',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    paymentId: uuid('payment_id').references(() => payments.id, { onDelete: 'set null' }),
+    number: text('number').notNull(),
+    planCode: text('plan_code').notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('PKR'),
+    issuedAt: timestamp('issued_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('invoices_number_key').on(t.number), index('invoices_user_idx').on(t.userId)],
+)
+
+export const expertReviews = pgTable(
+  'expert_reviews',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectType: text('subject_type').notNull(), // 'attempt' | 'written_response'
+    subjectId: uuid('subject_id').notNull(),
+    status: text('status').notNull().default('queued'), // queued | assigned | completed
+    reviewerId: uuid('reviewer_id').references(() => users.id, { onDelete: 'set null' }),
+    reviewerFeedback: text('reviewer_feedback'),
+    // Reviewer's quality rating of the response (feeds a future training set).
+    reviewerRating: integer('reviewer_rating'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('expert_reviews_status_idx').on(t.status),
+    index('expert_reviews_user_idx').on(t.userId),
+  ],
+)
+
+export const supportNotes = pgTable(
+  'support_notes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
+    note: text('note').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('support_notes_user_idx').on(t.userId)],
+)
+
 export type Plan = typeof plans.$inferSelect
 export type Subscription = typeof subscriptions.$inferSelect
+export type Payment = typeof payments.$inferSelect

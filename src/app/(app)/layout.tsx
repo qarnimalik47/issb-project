@@ -50,6 +50,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             Insights
           </a>
           <a
+            href="/billing"
+            className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+          >
+            Billing
+          </a>
+          <a
             href="/simulation"
             className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
           >

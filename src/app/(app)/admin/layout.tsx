@@ -10,6 +10,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4 border-b border-neutral-200 pb-3 text-sm dark:border-neutral-800">
         <span className="font-semibold">Admin</span>
+        <a href="/admin" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+          Dashboard
+        </a>
         <a
           href="/admin/import"
           className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
