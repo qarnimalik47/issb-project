@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+
+/*
+ * Global base styles. Bilingual (English/Urdu) with RTL support.
+ * Urdu uses a Nastaliq-capable font stack; falls back gracefully if the user's
+ * device lacks it. Kept light so it performs on low-end Android devices.
+ */
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+/* Urdu / RTL typography */
+html[dir='rtl'] body {
+  font-family:
+    'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  line-height: 2;
+}
+
+/* Ensure form controls inherit direction */
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}

@@ -1,0 +1,14 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+drizzle
+*.log
+storage
+backups
+pnpm-lock.yaml
+package-lock.json
+
+# The master build spec is authored by the product owner — never reformat it.
+ISSB-PREP-PLATFORM-BUILD-PROMPT.md
