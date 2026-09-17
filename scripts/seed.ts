@@ -9,7 +9,16 @@
 import 'dotenv/config'
 import { sql as rawSql } from '../src/lib/db/index'
 import { db } from '../src/lib/db/index'
-import { appMetadata, testTypes, questions, rubrics, plans } from '../src/lib/db/schema'
+import {
+  appMetadata,
+  testTypes,
+  questions,
+  rubrics,
+  plans,
+  flashcards,
+  gkArticles,
+} from '../src/lib/db/schema'
+import { STATIC_FLASHCARDS, SAMPLE_ARTICLES } from '../src/lib/db/seed-data/gk'
 import { TEST_TYPES } from '../src/lib/db/seed-data/test-types'
 import { SAMPLE_QUESTIONS } from '../src/lib/db/seed-data/sample-questions'
 import { WRITTEN_ITEMS } from '../src/lib/db/seed-data/written-items'
@@ -160,6 +169,34 @@ async function main() {
       })
   }
   console.warn(`✓ Seeded ${Object.keys(PLANS).length} plan(s).`)
+
+  // Static GK flashcards (idempotent by deck+frontEn).
+  let seededF = 0
+  for (const c of STATIC_FLASHCARDS) {
+    const existing = await db
+      .select({ id: flashcards.id })
+      .from(flashcards)
+      .where(and(eq(flashcards.deck, c.deck), eq(flashcards.frontEn, c.frontEn)))
+      .limit(1)
+    if (existing[0]) continue
+    await db.insert(flashcards).values({ ...c, status: 'published' })
+    seededF++
+  }
+  console.warn(`✓ Seeded ${seededF} flashcard(s).`)
+
+  // Sample published current-affairs items (idempotent by sourceUrl).
+  let seededA = 0
+  for (const a of SAMPLE_ARTICLES) {
+    const existing = await db
+      .select({ id: gkArticles.id })
+      .from(gkArticles)
+      .where(eq(gkArticles.sourceUrl, a.sourceUrl))
+      .limit(1)
+    if (existing[0]) continue
+    await db.insert(gkArticles).values(a)
+    seededA++
+  }
+  console.warn(`✓ Seeded ${seededA} article(s).`)
 }
 
 try {

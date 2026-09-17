@@ -40,6 +40,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             Voice
           </a>
+          <a href="/gk" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+            GK
+          </a>
           <a
             href="/insights"
             className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"

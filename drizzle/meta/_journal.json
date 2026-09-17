@@ -43,6 +43,13 @@
       "when": 1789675843684,
       "tag": "0005_stiff_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789676441340,
+      "tag": "0006_clean_iceman",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         >
           PDF Import
         </a>
+        <a
+          href="/admin/gk"
+          className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+        >
+          Current Affairs
+        </a>
       </div>
       {children}
     </div>
