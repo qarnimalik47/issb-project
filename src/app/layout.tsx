@@ -23,8 +23,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const dir = dirFor(locale)
   return (
-    <html lang={locale} dir={dir} data-locale={locale}>
-      <body className="min-h-screen bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
+    <html lang={locale} dir={dir} data-locale={locale} suppressHydrationWarning>
+      <body
+        className="min-h-screen bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
