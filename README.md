@@ -21,6 +21,13 @@ What's built:
   rubric management, storage abstraction + signed URLs.
 - **Objective engine** — server-authoritative timed MCQ, autosave/resume,
   deterministic scoring, one-active-attempt, analytics.
+- **MCQ milestone** — full-screen exam player (instructions, flag for review,
+  review screen, keyboard shortcuts, accessible, Urdu RTL, figures that never
+  mirror), deadline enforced server-side, ~300 original questions (verbal,
+  mechanical, GK; English + Urdu), and an admin question bank at
+  `/admin/questions` with editor, figure upload, bulk publish and CSV/JSON
+  import. Scraping of third-party sites is built but **off by default** — see
+  below.
 - **Written capture** — WAT/SCT/SRT/essay/story players, paper mode + queued
   OCR + mandatory confirmation.
 - **AI evaluation** — provider-agnostic (mock + Anthropic/OpenAI/Google),
@@ -38,8 +45,8 @@ What's built:
 - **Mobile** — Expo/React Native app (`mobile/`) consuming the same API with
   offline flashcards/digest and queued submission sync.
 
-Background jobs (PDF import, OCR, STT, AI evaluation, news ingestion) run in a
-worker: **`npm run worker`** (separate process).
+Background jobs (PDF import, OCR, STT, AI evaluation, news ingestion,
+scraping) run in a worker: **`npm run worker`** (separate process).
 
 ---
 
@@ -99,27 +106,28 @@ auto-selects a free port if 4310 is busy). Open it, and check
 
 ## Everyday commands
 
-| Command               | What it does                                                       |
-| --------------------- | ------------------------------------------------------------------ |
-| `npm run dev`         | Start the dev server on a guaranteed-free port                     |
-| `npm run build`       | Production build (fails on type errors)                            |
-| `npm start`           | Start the production server (after `build`)                        |
-| `npm run stop`\*      | Stop a backgrounded server this project started                    |
-| `npm run lint`        | ESLint (flat config)                                               |
-| `npm run typecheck`   | `tsc --noEmit`                                                     |
-| `npm run format`      | Prettier write                                                     |
-| `npm test`            | Vitest unit/integration suite                                      |
-| `npm run test:e2e`    | Playwright end-to-end suite (starts the app itself)                |
-| `npm run ci`          | **The gate:** format check + lint + typecheck + tests, in sequence |
-| `npm run check-env`   | Validate `.env` against the schema                                 |
-| `npm run preflight`   | Validate env + confirm Postgres/Redis reachable                    |
-| `npm run db:setup`    | Create DB + role (idempotent)                                      |
-| `npm run db:generate` | Generate a Drizzle migration from schema changes                   |
-| `npm run db:migrate`  | Apply pending migrations                                           |
-| `npm run db:seed`     | Seed baseline data (idempotent)                                    |
-| `npm run db:studio`   | Open Drizzle Studio                                                |
-| `npm run backup`      | Dump the database to `backups/`                                    |
-| `npm run restore`     | Restore a dump (prompts before overwriting)                        |
+| Command                  | What it does                                                       |
+| ------------------------ | ------------------------------------------------------------------ |
+| `npm run dev`            | Start the dev server on a guaranteed-free port                     |
+| `npm run build`          | Production build (fails on type errors)                            |
+| `npm start`              | Start the production server (after `build`)                        |
+| `npm run stop`\*         | Stop a backgrounded server this project started                    |
+| `npm run lint`           | ESLint (flat config)                                               |
+| `npm run typecheck`      | `tsc --noEmit`                                                     |
+| `npm run format`         | Prettier write                                                     |
+| `npm test`               | Vitest unit/integration suite                                      |
+| `npm run test:e2e`       | Playwright end-to-end suite (starts the app itself)                |
+| `npm run ci`             | **The gate:** format check + lint + typecheck + tests, in sequence |
+| `npm run check-env`      | Validate `.env` against the schema                                 |
+| `npm run preflight`      | Validate env + confirm Postgres/Redis reachable                    |
+| `npm run db:setup`       | Create DB + role (idempotent)                                      |
+| `npm run db:generate`    | Generate a Drizzle migration from schema changes                   |
+| `npm run db:migrate`     | Apply pending migrations                                           |
+| `npm run db:seed`        | Seed baseline data (idempotent)                                    |
+| `npm run db:studio`      | Open Drizzle Studio                                                |
+| `npm run backup`         | Dump the database to `backups/`                                    |
+| `npm run restore`        | Restore a dump (prompts before overwriting)                        |
+| `npm run sweep-attempts` | Close timed tests left open past their deadline (run hourly)       |
 
 \* `stop` is for servers started in the background; a foreground `npm run dev`
 is stopped with Ctrl+C.
@@ -156,6 +164,26 @@ tests/
   e2e/                 Playwright end-to-end tests
 docs/                  ARCHITECTURE, PORTS, SECURITY, CONTRIBUTING, DATABASE, ADRs, backlog
 ```
+
+---
+
+## Question content and scraping
+
+- **Hand-authored banks** live in `src/lib/db/seed-data/*-questions.ts` and are
+  loaded by `npm run db:seed` (re-running it also applies corrected answer
+  keys). Admins add more at `/admin/questions` or in bulk at
+  `/admin/questions/import` (dry run first; download the CSV template there).
+- **Scraping** (`/admin/sources`) fetches nothing unless ALL of these hold:
+  `SCRAPE_ENABLED=true` and the domain in `SCRAPE_ALLOWED_DOMAINS` (server
+  `.env`), the domain enabled in `/admin/sources`, a person has confirmed they
+  read that site's terms, and robots.txt allows it. It uses an honest
+  User-Agent (`SCRAPE_CONTACT`), keeps `SCRAPE_DOMAIN_DELAY_MS` between
+  requests to a site, and stops on any sign of access control.
+- Scraped third-party questions land in review marked **Rewrite required** and
+  cannot be approved until they are reworded (checked on the server). Keep any
+  one site's share of the bank small — `/admin/sources` shows it per site.
+  robots.txt compliance is not terms-of-service compliance, and rewording does
+  not cure copying a whole collection.
 
 ---
 

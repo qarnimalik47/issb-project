@@ -54,7 +54,7 @@ export function GkDigest() {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded border border-line-strong px-2 py-1 text-sm dark:bg-neutral-900"
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -67,31 +67,28 @@ export function GkDigest() {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && load()}
           placeholder="Search…"
-          className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded border border-line-strong px-2 py-1 text-sm dark:bg-neutral-900"
         />
         <a
           href="/gk/flashcards"
-          className="ml-auto rounded bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-neutral-900"
+          className="ml-auto rounded bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
         >
-          Flashcards →
+          Flashcards
         </a>
       </div>
 
-      {items.length === 0 && <p className="text-sm text-neutral-500">No items yet.</p>}
+      {items.length === 0 && <p className="text-sm text-ink-muted">No items yet.</p>}
       {items.map((a) => (
-        <article
-          key={a.id}
-          className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-        >
+        <article key={a.id} className="rounded-lg border border-line p-4">
           <div className="flex items-start justify-between gap-3">
             <h3 className="font-medium">{a.headline}</h3>
             <button onClick={() => bookmark(a.id)} className="text-sm" title="Bookmark">
               {bookmarks[a.id] ? '★' : '☆'}
             </button>
           </div>
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{a.summaryEn}</p>
+          <p className="mt-1 text-sm text-ink-muted">{a.summaryEn}</p>
           {a.summaryUr && (
-            <p dir="rtl" className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            <p dir="rtl" className="mt-1 text-sm text-ink-muted">
               {a.summaryUr}
             </p>
           )}
@@ -101,12 +98,10 @@ export function GkDigest() {
             </p>
           )}
           {a.oneLiner && (
-            <p className="mt-1 text-xs italic text-neutral-500">One-liner: {a.oneLiner}</p>
+            <p className="mt-1 text-xs italic text-ink-muted">One-liner: {a.oneLiner}</p>
           )}
-          <div className="mt-2 text-xs text-neutral-400">
-            <span className="rounded bg-neutral-100 px-1.5 py-0.5 dark:bg-neutral-800">
-              {a.category}
-            </span>
+          <div className="mt-2 text-xs text-ink-muted">
+            <span className="rounded bg-sunk px-1.5 py-0.5">{a.category}</span>
             {a.sourceName && a.sourceUrl && (
               <>
                 {' · '}

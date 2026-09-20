@@ -20,8 +20,11 @@ if (changed) {
 }
 console.warn(`▶ Next.js (dev) → http://${env.APP_HOST}:${port}`)
 
-const nextBin = path.resolve(process.cwd(), 'node_modules/.bin/next')
-const child = spawn(nextBin, ['dev', '-p', String(port), '-H', env.APP_HOST], {
+// Invoke Next's JS entry point with the current Node binary rather than the
+// `.bin` shim: the shim is an extensionless shell script Windows cannot execute,
+// and routing around it via `shell: true` breaks on paths containing spaces.
+const nextBin = path.resolve(process.cwd(), 'node_modules/next/dist/bin/next')
+const child = spawn(process.execPath, [nextBin, 'dev', '-p', String(port), '-H', env.APP_HOST], {
   stdio: 'inherit',
   env: { ...process.env, APP_RESOLVED_PORT: String(port) },
 })

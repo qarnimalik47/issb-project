@@ -10,13 +10,24 @@ import {
   text,
   integer,
   numeric,
+  boolean,
   timestamp,
   jsonb,
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { users } from './identity'
-import { testDimension, scoringType, contentStatus, locale, stagingStatus } from './enums'
+import {
+  testDimension,
+  scoringType,
+  contentStatus,
+  locale,
+  stagingStatus,
+  acquisitionKind,
+  licenceBasis,
+  stagingReviewState,
+} from './enums'
 
 export const testTypes = pgTable(
   'test_types',
@@ -96,12 +107,21 @@ export const questions = pgTable(
     contentHash: text('content_hash').notNull(),
     status: contentStatus('status').notNull().default('draft'),
     version: integer('version').notNull().default(1),
+    /**
+     * Where an imported question came from. Makes "what share of the live bank
+     * traces to domain X?" a single query — the check against compiling too
+     * much of any one source.
+     */
+    sourceDocumentId: uuid('source_document_id').references(() => sourceDocuments.id, {
+      onDelete: 'set null',
+    }),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('questions_bank_idx').on(t.bankId),
+    index('questions_source_document_idx').on(t.sourceDocumentId),
     index('questions_test_type_idx').on(t.testTypeId),
     index('questions_status_idx').on(t.status),
     index('questions_topic_idx').on(t.topic),
@@ -133,7 +153,7 @@ export const importBatches = pgTable(
   'import_batches',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    source: text('source').notNull(), // 'upload' | 'path'
+    source: text('source').notNull(), // 'upload' | 'path' | 'scrape'
     filename: text('filename').notNull(),
     status: text('status').notNull().default('parsing'), // parsing | ready | failed
     totalPages: integer('total_pages'),
@@ -158,12 +178,92 @@ export const stagingQuestions = pgTable(
     contentHash: text('content_hash').notNull(),
     confidence: numeric('confidence'),
     status: stagingStatus('status').notNull().default('pending'),
+    /** Rewrite gate; `extracted` is never modified, edits go to `editedExtracted`. */
+    reviewState: stagingReviewState('review_state').notNull().default('clear'),
+    /** The reviewer's version of `extracted` — what is approved when present. */
+    editedExtracted: jsonb('edited_extracted'),
+    /** Token-trigram similarity of the edit to the source prose, 0..1. */
+    similarity: numeric('similarity'),
+    sourceDocumentId: uuid('source_document_id').references(() => sourceDocuments.id, {
+      onDelete: 'set null',
+    }),
     reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('staging_questions_batch_idx').on(t.batchId),
     index('staging_questions_status_idx').on(t.status),
+    // Partial on purpose: a plain unique index would let a rejected row's hash
+    // block that question from ever being staged again.
+    uniqueIndex('staging_questions_content_hash_pending_key')
+      .on(t.contentHash)
+      .where(sql`${t.status} = 'pending'`),
+  ],
+)
+
+/**
+ * Domains the scraper may fetch from. The DB flag is the second of two
+ * independent gates (the first is SCRAPE_ALLOWED_DOMAINS in the environment),
+ * so a compromised admin session alone cannot point the crawler anywhere new.
+ */
+export const scrapeSources = pgTable(
+  'scrape_sources',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    domain: text('domain').notNull(),
+    enabled: boolean('enabled').notNull().default(false),
+    licence: licenceBasis('licence').notNull().default('third_party_unlicensed'),
+    /** Credit line appended to explanations when the licence requires it. */
+    attribution: text('attribution'),
+    /** When a person confirmed they read this site's terms. Required to enable. */
+    tosReviewedAt: timestamp('tos_reviewed_at', { withTimezone: true }),
+    /** Cap on documents fetched per run — spreads sourcing across sites. */
+    maxPages: integer('max_pages').notNull().default(25),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('scrape_sources_domain_key').on(t.domain)],
+)
+
+/**
+ * Provenance: one row per fetched or uploaded document, many per import batch.
+ * Records what was fetched, under which licence, and the robots.txt decision
+ * at the time — auditable after the fact.
+ */
+export const sourceDocuments = pgTable(
+  'source_documents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    batchId: uuid('batch_id')
+      .notNull()
+      .references(() => importBatches.id, { onDelete: 'cascade' }),
+    scrapeSourceId: uuid('scrape_source_id').references(() => scrapeSources.id, {
+      onDelete: 'set null',
+    }),
+    url: text('url'),
+    acquisition: acquisitionKind('acquisition').notNull(),
+    licence: licenceBasis('licence').notNull(),
+    attribution: text('attribution'),
+    // queued | fetched | extracted | skipped | failed
+    status: text('status').notNull().default('queued'),
+    httpStatus: integer('http_status'),
+    robotsAllowed: boolean('robots_allowed'),
+    robotsCheckedAt: timestamp('robots_checked_at', { withTimezone: true }),
+    contentType: text('content_type'),
+    sha256: text('sha256'),
+    /** Raw snapshot, so extraction can be re-run with zero network requests. */
+    storageKey: text('storage_key'),
+    /** Why it was skipped or failed, in words. */
+    reason: text('reason'),
+    extractedCount: integer('extracted_count'),
+    fetchedAt: timestamp('fetched_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('source_documents_batch_idx').on(t.batchId),
+    index('source_documents_source_idx').on(t.scrapeSourceId),
   ],
 )
 

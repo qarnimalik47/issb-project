@@ -15,9 +15,9 @@ type Metrics = {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="rounded-lg border border-line p-4">
       <div className="text-2xl font-semibold">{value}</div>
-      <div className="text-xs text-neutral-500">{label}</div>
+      <div className="text-xs text-ink-muted">{label}</div>
     </div>
   )
 }
@@ -32,7 +32,7 @@ export function AdminDashboard() {
       .catch(() => {})
   }, [])
 
-  if (!m) return <p className="text-neutral-500">Loading metrics…</p>
+  if (!m) return <p className="text-ink-muted">Loading metrics…</p>
 
   return (
     <div className="flex flex-col gap-4">
@@ -44,15 +44,15 @@ export function AdminDashboard() {
         <Stat label="Failed payments" value={m.failedPayments} />
         <Stat label="Evals needing review" value={m.evaluationsNeedingReview} />
       </div>
-      <div className="rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800">
+      <div className="rounded-lg border border-line p-4 text-sm">
         <div className="font-medium">Subscriptions by plan</div>
-        <div className="mt-1 text-neutral-600 dark:text-neutral-400">
+        <div className="mt-1 text-ink-muted">
           {Object.entries(m.subscriptionsByPlan)
             .map(([p, n]) => `${p}: ${n}`)
             .join(' · ') || 'none'}
         </div>
         <div className="mt-3 font-medium">Queue depth</div>
-        <div className="mt-1 text-neutral-600 dark:text-neutral-400">
+        <div className="mt-1 text-ink-muted">
           {Object.entries(m.queueDepth)
             .map(([q, n]) => `${q}: ${n}`)
             .join(' · ')}

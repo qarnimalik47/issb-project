@@ -21,28 +21,33 @@ async function registerAndVerify(request: import('@playwright/test').APIRequestC
   return email
 }
 
-test('objective test: start, answer, submit, get explained result', async ({ page }) => {
-  await registerAndVerify(page.request)
-
+/** Open the GK card from the catalog and get past the instructions screen. */
+async function startGk(page: import('@playwright/test').Page) {
   await page.goto('/practice')
   await expect(page.getByRole('heading', { name: 'Practice tests' })).toBeVisible()
-
-  // Start the GK test (seeded with sample questions).
-  const gkCard = page.locator('.rounded-lg', { hasText: 'General Knowledge' })
-  await gkCard.getByRole('link', { name: 'Start' }).click()
-
-  // Answer each question, then submit.
+  await page.getByTestId('test-card-gk').getByRole('link', { name: 'Start' }).click()
+  // The attempt (and its clock) is only created on Begin.
+  await page.getByRole('button', { name: 'Begin test' }).click()
   await expect(page.getByText(/Question 1 \//)).toBeVisible()
+}
+
+test('objective test: start, answer, submit, get explained result', async ({ page }) => {
+  await registerAndVerify(page.request)
+  await startGk(page)
+
   const total = Number(
     (await page.getByText(/Question 1 \/ (\d+)/).textContent())!.match(/\/ (\d+)/)![1],
   )
 
+  // Answer each question, then review and submit.
   for (let i = 0; i < total; i++) {
     await page.locator('input[type="radio"]').first().check()
     if (i < total - 1) {
       await page.getByRole('button', { name: 'Next', exact: true }).click()
     }
   }
+  await page.getByRole('button', { name: 'Review', exact: true }).click()
+  // Everything answered and nothing flagged → no confirmation dialog.
   await page.getByRole('button', { name: 'Submit', exact: true }).click()
 
   // Result screen with a score out of total.
@@ -51,10 +56,7 @@ test('objective test: start, answer, submit, get explained result', async ({ pag
 
 test('objective test resumes an in-progress attempt after reload', async ({ page }) => {
   await registerAndVerify(page.request)
-  await page.goto('/practice')
-  const card = page.locator('.rounded-lg', { hasText: 'General Knowledge' })
-  await card.getByRole('link', { name: 'Start' }).click()
-  await expect(page.getByText(/Question 1 \//)).toBeVisible()
+  await startGk(page)
 
   // Answer Q1 and wait for the autosave request to complete.
   const savePromise = page.waitForResponse(
@@ -63,8 +65,28 @@ test('objective test resumes an in-progress attempt after reload', async ({ page
   await page.locator('input[type="radio"]').first().check()
   await savePromise
 
-  // Reload → same attempt resumes with the answer preserved.
+  // Reload → same attempt resumes with the answer preserved, straight into the test.
   await page.reload()
   await expect(page.getByText(/Question 1 \//)).toBeVisible()
   await expect(page.locator('input[type="radio"]').first()).toBeChecked()
+})
+
+test('a flag for review survives a reload', async ({ page }) => {
+  await registerAndVerify(page.request)
+  await startGk(page)
+
+  const savePromise = page.waitForResponse(
+    (r) => r.url().includes('/autosave') && r.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Flag for review' }).click()
+  await savePromise
+
+  await page.reload()
+  await expect(page.getByText(/Question 1 \//)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove flag' })).toBeVisible()
+})
+
+test('the exam route is not reachable signed out', async ({ page }) => {
+  await page.goto('/practice/00000000-0000-4000-8000-000000000000')
+  await expect(page).toHaveURL(/\/login/)
 })

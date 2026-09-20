@@ -6,12 +6,9 @@ export const dynamic = 'force-dynamic'
 
 function Card({ title, desc, href }: { title: string; desc: string; href: string }) {
   return (
-    <a
-      href={href}
-      className="rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 dark:border-neutral-800"
-    >
+    <a href={href} className="rounded-lg border border-line p-4 hover:border-neutral-400">
       <div className="font-medium">{title}</div>
-      <div className="mt-1 text-sm text-neutral-500">{desc}</div>
+      <div className="mt-1 text-sm text-ink-muted">{desc}</div>
     </a>
   )
 }
@@ -27,7 +24,9 @@ export default async function VoiceHubPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Voice & interview practice</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        Voice & interview practice
+      </h1>
       <div className="grid gap-4 sm:grid-cols-2">
         <Card
           title="Lecturette"

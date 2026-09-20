@@ -49,7 +49,7 @@ export function LecturettePlayer({ testTypeId }: { testTypeId: string }) {
   }
 
   if (error) return <p className="text-red-600">{error}</p>
-  if (!attemptId || !item) return <p className="text-neutral-500">Loading…</p>
+  if (!attemptId || !item) return <p className="text-ink-muted">Loading…</p>
 
   if (phase === 'done') {
     return (
@@ -65,36 +65,36 @@ export function LecturettePlayer({ testTypeId }: { testTypeId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-        <div className="text-xs uppercase text-neutral-400">Your topic</div>
+      <div className="rounded-lg border border-line p-6">
+        <div className="text-xs uppercase text-ink-muted">Your topic</div>
         <div className="mt-1 text-2xl font-semibold">{item.prompt}</div>
       </div>
 
       {phase === 'prep' ? (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-ink-muted">
             Preparation time: {prepLeft}s. Plan intro → analysis → conclusion.
           </p>
           <button
             onClick={() => setPhase('deliver')}
-            className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900"
+            className="w-fit rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
           >
             I&apos;m ready — start speaking
           </button>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-ink-muted">
             Speak for up to 2 minutes. Record, or type your response.
           </p>
           <VoiceRecorder attemptId={attemptId} itemRef={item.ref} maxSeconds={120} />
-          <div className="text-xs text-neutral-400">— or type —</div>
+          <div className="text-xs text-ink-muted">— or type —</div>
           <textarea
             rows={5}
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             placeholder="Type your lecturette here…"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm dark:bg-neutral-900"
           />
           <button
             onClick={submit}

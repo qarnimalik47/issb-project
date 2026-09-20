@@ -43,6 +43,9 @@ export const scoringType = pgEnum('scoring_type', ['objective', 'rubric', 'consi
 
 export const contentStatus = pgEnum('content_status', ['draft', 'published', 'archived'])
 
+/** GK is curated, evergreen knowledge; current affairs is gathered and refreshed. */
+export const gkTopicKind = pgEnum('gk_topic_kind', ['gk', 'current_affairs'])
+
 export const attemptMode = pgEnum('attempt_mode', ['typed', 'paper'])
 
 export const attemptStatus = pgEnum('attempt_status', [
@@ -61,3 +64,28 @@ export const evaluationStatus = pgEnum('evaluation_status', [
 ])
 
 export const stagingStatus = pgEnum('staging_status', ['pending', 'approved', 'rejected'])
+
+/** How an imported document was obtained. Drives the rewrite gate with licenceBasis. */
+export const acquisitionKind = pgEnum('acquisition_kind', ['public_source', 'owned_pdf', 'scrape'])
+
+/**
+ * The legal basis for reusing a document's content. Only
+ * `third_party_unlicensed` forces the rewrite gate; `cc_by` requires attribution.
+ */
+export const licenceBasis = pgEnum('licence_basis', [
+  'public_domain',
+  'cc_by',
+  'official_sample',
+  'owned_licence',
+  'third_party_unlicensed',
+])
+
+/**
+ * Orthogonal to stagingStatus: whether an item may be approved as extracted
+ * (`clear`), must be reworded first (`needs_rewrite`), or has been (`rewritten`).
+ */
+export const stagingReviewState = pgEnum('staging_review_state', [
+  'clear',
+  'needs_rewrite',
+  'rewritten',
+])

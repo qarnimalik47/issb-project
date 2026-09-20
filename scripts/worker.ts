@@ -11,6 +11,12 @@ import { createWorker, QUEUE_NAMES } from '../src/lib/queue/index'
 import { processImportBatch } from '../src/lib/import/service'
 import { processOcr, processStt } from '../src/lib/tests/written'
 import { evaluateWrittenResponse } from '../src/lib/eval/service'
+import {
+  extractSourceDocument,
+  fetchSourceDocument,
+  markDocumentFailed,
+} from '../src/lib/scrape/service'
+import { DelayedError } from 'bullmq'
 import { childLogger } from '../src/lib/logger/index'
 
 const log = childLogger('worker')
@@ -37,6 +43,36 @@ workers.push(
 workers.push(
   createWorker<{ writtenResponseId: string }>(QUEUE_NAMES.evaluation, async (job) => {
     await evaluateWrittenResponse(job.data.writtenResponseId)
+  }),
+)
+
+// Scrape fetches: one request per second globally on top of the per-domain gap.
+workers.push(
+  createWorker<{ documentId: string }>(
+    QUEUE_NAMES.scrapeFetch,
+    async (job, token) => {
+      const outcome = await fetchSourceDocument(job.data.documentId)
+      if (outcome.kind === 'delay') {
+        // Politeness gate or 429: come back later WITHOUT spending an attempt.
+        await job.moveToDelayed(Date.now() + outcome.ms, token)
+        throw new DelayedError()
+      }
+      if (outcome.kind === 'retry') {
+        const attempts = job.opts.attempts ?? 1
+        if (job.attemptsMade + 1 >= attempts) {
+          await markDocumentFailed(job.data.documentId, outcome.reason)
+          return
+        }
+        throw new Error(outcome.reason)
+      }
+    },
+    { concurrency: 2, limiter: { max: 1, duration: 1000 } },
+  ),
+)
+
+workers.push(
+  createWorker<{ documentId: string }>(QUEUE_NAMES.scrapeExtract, async (job) => {
+    await extractSourceDocument(job.data.documentId)
   }),
 )
 

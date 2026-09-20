@@ -114,7 +114,7 @@ export function VoiceRecorder({ attemptId, itemRef, maxSeconds = 120, onConfirme
           <button onClick={start} className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white">
             ● Record
           </button>
-          <label className="text-xs text-neutral-500">
+          <label className="text-xs text-ink-muted">
             or upload audio{' '}
             <input type="file" accept="audio/*" onChange={onFile} className="text-xs" />
           </label>
@@ -123,19 +123,19 @@ export function VoiceRecorder({ attemptId, itemRef, maxSeconds = 120, onConfirme
       {status === 'recording' && (
         <button
           onClick={stop}
-          className="w-fit rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-neutral-900"
+          className="w-fit rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
         >
           ■ Stop ({seconds}s / {maxSeconds}s)
         </button>
       )}
       {(status === 'uploading' || status === 'transcribing') && (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-ink-muted">
           {status === 'uploading' ? 'Uploading…' : 'Transcribing…'}
         </p>
       )}
       {status === 'confirm' && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-ink-muted">
             {transcript
               ? 'Review your transcript:'
               : 'Transcription unavailable — type what you said:'}
@@ -144,11 +144,11 @@ export function VoiceRecorder({ attemptId, itemRef, maxSeconds = 120, onConfirme
             rows={4}
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm dark:bg-neutral-900"
           />
           <button
             onClick={confirm}
-            className="w-fit rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-neutral-900"
+            className="w-fit rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
           >
             Confirm
           </button>

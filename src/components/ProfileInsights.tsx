@@ -36,12 +36,12 @@ export function ProfileInsights() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-neutral-500">Building your profile…</p>
+  if (loading) return <p className="text-ink-muted">Building your profile…</p>
   if (!profile) return <p className="text-red-600">Could not load profile.</p>
 
   if (profile.qualities.length === 0) {
     return (
-      <div className="rounded-md border border-neutral-200 p-6 text-sm dark:border-neutral-800">
+      <div className="rounded-md border border-line p-6 text-sm">
         Complete and evaluate some written tests to build your personality profile.
       </div>
     )
@@ -53,7 +53,7 @@ export function ProfileInsights() {
         className={`rounded-md border p-4 text-sm ${
           profile.confidence.level === 'low'
             ? 'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950'
-            : 'border-neutral-200 dark:border-neutral-800'
+            : 'border-line'
         }`}
       >
         <strong>Profile confidence: {profile.confidence.level.toUpperCase()}</strong> — based on{' '}
@@ -62,24 +62,21 @@ export function ProfileInsights() {
       </div>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Qualities</h2>
+        <h2 className="mb-2 font-display text-lg font-semibold text-ink">Qualities</h2>
         <div className="flex flex-col gap-3">
           {profile.qualities.map((q) => (
-            <div
-              key={q.key}
-              className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800"
-            >
+            <div key={q.key} className="rounded-lg border border-line p-3">
               <div className="flex items-center justify-between">
                 <span className="font-medium capitalize">{q.key.replace(/_/g, ' ')}</span>
                 <span className="text-sm">{q.score} / 5</span>
               </div>
-              <div className="mt-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800">
+              <div className="mt-1 h-2 rounded bg-sunk">
                 <div
                   className="h-2 rounded bg-neutral-900 dark:bg-white"
                   style={{ width: `${(q.score / 5) * 100}%` }}
                 />
               </div>
-              {q.evidence[0] && <p className="mt-1 text-xs text-neutral-500">“{q.evidence[0]}”</p>}
+              {q.evidence[0] && <p className="mt-1 text-xs text-ink-muted">“{q.evidence[0]}”</p>}
             </div>
           ))}
         </div>
@@ -101,15 +98,15 @@ export function ProfileInsights() {
         </section>
       )}
 
-      <section className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
+      <section className="rounded-md border border-line p-3 text-sm">
         <strong>Authenticity:</strong> {profile.authenticity.note}
       </section>
 
       {plan && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">Study plan</h2>
+          <h2 className="mb-2 font-display text-lg font-semibold text-ink">Study plan</h2>
           {plan.daysToTarget != null && (
-            <p className="mb-2 text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mb-2 text-sm text-ink-muted">
               {plan.daysToTarget} days to your target ISSB date.
             </p>
           )}
@@ -126,7 +123,7 @@ export function ProfileInsights() {
 
       <a
         href="/api/me/report"
-        className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900"
+        className="w-fit rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
       >
         Download PDF report
       </a>

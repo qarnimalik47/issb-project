@@ -78,6 +78,30 @@ export const envSchema = z.object({
   ANTHROPIC_API_KEY: optionalNonEmpty,
   GOOGLE_API_KEY: optionalNonEmpty,
   OPENAI_API_KEY: optionalNonEmpty,
+
+  // --- Content scraping (off unless deliberately configured) ---------------
+  /** Master kill switch. While false the scraper makes no requests at all. */
+  SCRAPE_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  /**
+   * Comma-separated domains the scraper may ever contact. The first of two
+   * independent gates — a domain must also be enabled in the admin UI.
+   */
+  SCRAPE_ALLOWED_DOMAINS: z
+    .string()
+    .default('')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((d) => d.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  /** Contact address in the crawler's User-Agent, so site owners can reach us. */
+  SCRAPE_CONTACT: optionalNonEmpty,
+  /** Minimum gap between two requests to the same domain. */
+  SCRAPE_DOMAIN_DELAY_MS: z.coerce.number().int().min(1000).max(600000).default(5000),
 })
 
 export type Env = z.infer<typeof envSchema>

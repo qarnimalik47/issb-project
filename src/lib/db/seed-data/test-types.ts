@@ -20,7 +20,8 @@ export const TEST_TYPES: SeedTestType[] = [
     nameUr: 'زبانی ذہانت',
     dimension: 'psychologist',
     scoringType: 'objective',
-    timing: { totalSeconds: 1800 },
+    // Without itemCount an attempt draws the entire published bank.
+    timing: { totalSeconds: 1800, itemCount: 50 },
     sortOrder: 10,
   },
   {
@@ -29,7 +30,7 @@ export const TEST_TYPES: SeedTestType[] = [
     nameUr: 'غیر زبانی ذہانت',
     dimension: 'psychologist',
     scoringType: 'objective',
-    timing: { totalSeconds: 1800 },
+    timing: { totalSeconds: 1800, itemCount: 50 },
     sortOrder: 20,
   },
   {
@@ -128,7 +129,7 @@ export const TEST_TYPES: SeedTestType[] = [
     nameUr: 'عمومی معلومات',
     dimension: 'cross_cutting',
     scoringType: 'objective',
-    timing: {},
+    timing: { itemCount: 25 },
     sortOrder: 130,
   },
   {

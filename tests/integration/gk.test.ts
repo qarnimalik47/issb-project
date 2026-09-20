@@ -8,11 +8,13 @@ import { approveArticle, listPublished } from '../../src/lib/gk/articles'
 
 let userId: string
 let cardId: string
+let deck: string
 let articleId: string
 
 describe('GK (integration)', () => {
   beforeAll(async () => {
     const stamp = Date.now()
+    deck = `it_${stamp}`
     const [u] = await db
       .insert(users)
       .values({ name: 'G', email: `g_${stamp}@test.com` })
@@ -20,7 +22,7 @@ describe('GK (integration)', () => {
     userId = u!.id
     const [c] = await db
       .insert(flashcards)
-      .values({ deck: `it_${stamp}`, frontEn: 'Q?', backEn: 'A', status: 'published' })
+      .values({ deck, frontEn: 'Q?', backEn: 'A', status: 'published' })
       .returning({ id: flashcards.id })
     cardId = c!.id
     const [a] = await db
@@ -45,7 +47,7 @@ describe('GK (integration)', () => {
   })
 
   it('surfaces a new card, then persists SM-2 state after review', async () => {
-    const before = await getDueCards(userId, 20)
+    const before = await getDueCards(userId, 20, deck)
     expect(before.some((c) => c.id === cardId && c.isNew)).toBe(true)
 
     await reviewFlashcard(userId, cardId, 5)
@@ -55,7 +57,7 @@ describe('GK (integration)', () => {
     expect(Number(state!.easiness)).toBeGreaterThan(2.5)
 
     // Reviewed card is scheduled in the future → not immediately due.
-    const after = await getDueCards(userId, 20)
+    const after = await getDueCards(userId, 20, deck)
     expect(after.some((c) => c.id === cardId)).toBe(false)
   })
 

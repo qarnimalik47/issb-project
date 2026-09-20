@@ -22,9 +22,9 @@ function fieldError(data: {
 }
 
 const inputCls =
-  'w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white'
+  'w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted outline-none transition-colors focus:border-brand-500'
 const btnCls =
-  'w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900'
+  'w-full rounded-pill bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-55 dark:bg-brand-500 dark:hover:bg-brand-400'
 
 export function LoginForm({ t }: { t: Dictionary }) {
   const router = useRouter()
@@ -56,11 +56,14 @@ export function LoginForm({ t }: { t: Dictionary }) {
         placeholder={t.common.password}
         className={inputCls}
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-flare-500">{error}</p>}
       <button type="submit" disabled={busy} className={btnCls}>
         {busy ? t.common.loading : t.common.signIn}
       </button>
-      <a href="/forgot-password" className="text-center text-sm text-neutral-500 underline">
+      <a
+        href="/forgot-password"
+        className="text-center text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
+      >
         {t.auth.forgot}
       </a>
     </form>
@@ -135,7 +138,7 @@ export function RegisterForm({ t }: { t: Dictionary }) {
         <input type="checkbox" name="acceptTerms" required className="mt-1" />
         {t.auth.acceptTerms}
       </label>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-flare-500">{error}</p>}
       <button type="submit" disabled={busy} className={btnCls}>
         {busy ? t.common.loading : t.common.register}
       </button>
@@ -171,7 +174,7 @@ export function VerifyForm({ t }: { t: Dictionary }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">{t.auth.verifyPrompt}</p>
+      <p className="text-sm text-ink-muted">{t.auth.verifyPrompt}</p>
       <input
         name="code"
         inputMode="numeric"
@@ -180,14 +183,14 @@ export function VerifyForm({ t }: { t: Dictionary }) {
         placeholder={t.auth.code}
         className={inputCls}
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-flare-500">{error}</p>}
       <button type="submit" disabled={busy} className={btnCls}>
         {busy ? t.common.loading : t.auth.verify}
       </button>
       <button
         type="button"
         onClick={resend}
-        className="text-center text-sm text-neutral-500 underline"
+        className="text-center text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
       >
         {resent ? t.common.saved : t.auth.resend}
       </button>
@@ -249,7 +252,7 @@ export function ForgotForm({ t }: { t: Dictionary }) {
     </form>
   ) : (
     <form onSubmit={confirm} className="flex flex-col gap-3">
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">{t.auth.verifyPrompt}</p>
+      <p className="text-sm text-ink-muted">{t.auth.verifyPrompt}</p>
       <input
         name="code"
         inputMode="numeric"
@@ -264,7 +267,7 @@ export function ForgotForm({ t }: { t: Dictionary }) {
         placeholder={t.common.password}
         className={inputCls}
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-flare-500">{error}</p>}
       <button type="submit" disabled={busy} className={btnCls}>
         {busy ? t.common.loading : t.common.submit}
       </button>

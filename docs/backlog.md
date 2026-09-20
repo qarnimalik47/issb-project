@@ -38,6 +38,7 @@ Still to answer, at the relevant phase:
   Phase 5 (AI-invoking endpoints).
 - **Error tracking.** Structured logging is in place; wire an error-tracking
   sink (rule 1.6) when the first real user flows land (Phase 1).
-- **Shared HTTP client with timeouts.** Rule 1.4 requires explicit timeouts on
-  external calls; add a small wrapper before the first outbound integration
-  (AI providers / news feeds).
+- ~~**Shared HTTP client with timeouts.**~~ Done: `src/lib/http/fetch.ts`
+  (timeout, size cap, vetted redirects) is used by the scraper. The AI
+  provider and news-feed calls predate it and carry their own timeouts; moving
+  them onto it would add the size cap.

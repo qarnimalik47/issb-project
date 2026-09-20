@@ -6,7 +6,7 @@ import type { Dictionary } from '@/lib/i18n/dictionaries'
 import type { PublicUser } from '@/lib/auth/serialize'
 
 const inputCls =
-  'w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
+  'w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
 
 export function ProfilePanel({ t, user }: { t: Dictionary; user: PublicUser }) {
   const router = useRouter()
@@ -67,7 +67,7 @@ export function ProfilePanel({ t, user }: { t: Dictionary; user: PublicUser }) {
           <button
             type="submit"
             disabled={busy}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
+            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
           >
             {t.common.save}
           </button>
@@ -75,7 +75,7 @@ export function ProfilePanel({ t, user }: { t: Dictionary; user: PublicUser }) {
         </div>
       </form>
 
-      <div className="rounded-md border border-neutral-200 p-4 text-sm dark:border-neutral-800">
+      <div className="rounded-md border border-line p-4 text-sm">
         <p className="mb-1">
           {user.email} —{' '}
           {user.emailVerified ? (
@@ -86,10 +86,10 @@ export function ProfilePanel({ t, user }: { t: Dictionary; user: PublicUser }) {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-neutral-200 pt-6 dark:border-neutral-800">
+      <div className="flex flex-col gap-3 border-t border-line pt-6">
         <a
           href="/api/me/export"
-          className="w-fit rounded-md border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700"
+          className="w-fit rounded-md border border-line-strong px-4 py-2 text-sm"
         >
           {t.profile.exportData}
         </a>

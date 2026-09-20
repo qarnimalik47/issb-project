@@ -38,23 +38,19 @@ export function ReviewerClient() {
     load()
   }
 
-  if (queue.length === 0)
-    return <p className="text-sm text-neutral-500">No reviews in the queue.</p>
+  if (queue.length === 0) return <p className="text-sm text-ink-muted">No reviews in the queue.</p>
 
   return (
     <div className="flex flex-col gap-4">
       {queue.map((r) => (
-        <div
-          key={r.id}
-          className="rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800"
-        >
-          <div className="text-xs text-neutral-400">
+        <div key={r.id} className="rounded-lg border border-line p-4 text-sm">
+          <div className="text-xs text-ink-muted">
             {r.subjectType} · {r.subjectId.slice(0, 8)} · {r.status} · {r.requestedAt.slice(0, 10)}
           </div>
           {r.status === 'queued' ? (
             <button
               onClick={() => act(r.id, 'claim')}
-              className="mt-2 rounded bg-neutral-900 px-3 py-1 text-white dark:bg-white dark:text-neutral-900"
+              className="mt-2 rounded bg-brand-600 px-3 py-1 text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
             >
               Claim
             </button>
@@ -69,7 +65,7 @@ export function ReviewerClient() {
                     [r.id]: { ...(s[r.id] ?? { rating: '3' }), feedback: e.target.value },
                   }))
                 }
-                className="w-full rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full rounded border border-line-strong px-2 py-1 dark:bg-neutral-900"
               />
               <select
                 onChange={(e) =>
@@ -79,7 +75,7 @@ export function ReviewerClient() {
                   }))
                 }
                 defaultValue="3"
-                className="w-fit rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-fit rounded border border-line-strong px-2 py-1 dark:bg-neutral-900"
               >
                 {[1, 2, 3, 4, 5].map((n) => (
                   <option key={n} value={n}>

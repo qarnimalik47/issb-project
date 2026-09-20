@@ -8,21 +8,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (user.role !== 'admin' && user.role !== 'content_editor') redirect('/dashboard')
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4 border-b border-neutral-200 pb-3 text-sm dark:border-neutral-800">
+      <div className="flex items-center gap-4 border-b border-line pb-3 text-sm">
         <span className="font-semibold">Admin</span>
-        <a href="/admin" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+        <a href="/admin" className="text-ink-muted hover:text-ink dark:hover:text-white">
           Dashboard
         </a>
-        <a
-          href="/admin/import"
-          className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
-        >
-          PDF Import
+        <a href="/admin/questions" className="text-ink-muted hover:text-ink dark:hover:text-white">
+          Questions
         </a>
         <a
-          href="/admin/gk"
-          className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+          href="/admin/questions/import"
+          className="text-ink-muted hover:text-ink dark:hover:text-white"
         >
+          Bulk import
+        </a>
+        <a href="/admin/import" className="text-ink-muted hover:text-ink dark:hover:text-white">
+          PDF Import
+        </a>
+        <a href="/admin/sources" className="text-ink-muted hover:text-ink dark:hover:text-white">
+          Sources
+        </a>
+        <a href="/admin/gk" className="text-ink-muted hover:text-ink dark:hover:text-white">
           Current Affairs
         </a>
       </div>

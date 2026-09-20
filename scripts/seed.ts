@@ -21,6 +21,11 @@ import {
 import { STATIC_FLASHCARDS, SAMPLE_ARTICLES } from '../src/lib/db/seed-data/gk'
 import { TEST_TYPES } from '../src/lib/db/seed-data/test-types'
 import { SAMPLE_QUESTIONS } from '../src/lib/db/seed-data/sample-questions'
+import { CURATED_TOPICS } from '../src/lib/db/seed-data/gk-topics'
+import { upsertCuratedTopic, rebuildTopicFlashcards } from '../src/lib/gk/topics'
+import { VERBAL_QUESTIONS } from '../src/lib/db/seed-data/verbal-questions'
+import { GK_QUESTIONS } from '../src/lib/db/seed-data/gk-questions'
+import { MECHANICAL_QUESTIONS } from '../src/lib/db/seed-data/mechanical-questions'
 import { WRITTEN_ITEMS } from '../src/lib/db/seed-data/written-items'
 import {
   DEFAULT_RUBRIC_CRITERIA,
@@ -74,10 +79,11 @@ async function main() {
   }
   console.warn(`✓ Seeded ${TEST_TYPES.length} test type(s).`)
 
-  // Sample published questions (our own content) to demonstrate the engine.
+  // Published question banks — original, hand-authored content (see the seed-data files).
   const typeByCode = new Map((await db.select().from(testTypes)).map((t) => [t.code, t.id]))
+  const BANK = [...SAMPLE_QUESTIONS, ...VERBAL_QUESTIONS, ...MECHANICAL_QUESTIONS, ...GK_QUESTIONS]
   let seededQ = 0
-  for (const sq of SAMPLE_QUESTIONS) {
+  for (const sq of BANK) {
     const testTypeId = typeByCode.get(sq.testTypeCode)
     if (!testTypeId) continue
     const contentHash = questionContentHash(sq.stemEn, sq.options)
@@ -95,14 +101,26 @@ async function main() {
         contentHash,
         status: 'published',
       })
+      // The hash covers only stem + option texts, so a corrected answer key,
+      // translation or explanation must be written on conflict — otherwise a
+      // fix in a seed file would never reach an existing database.
       .onConflictDoUpdate({
         target: questions.contentHash,
-        set: { status: 'published', updatedAt: new Date() },
+        set: {
+          stemUr: sq.stemUr,
+          options: sq.options,
+          correctOption: sq.correctOption,
+          explanationEn: sq.explanationEn,
+          topic: sq.topic,
+          difficulty: sq.difficulty,
+          status: 'published',
+          updatedAt: new Date(),
+        },
       })
       .returning({ id: questions.id })
     if (res[0]) seededQ++
   }
-  console.warn(`✓ Seeded ${seededQ} sample question(s).`)
+  console.warn(`✓ Seeded ${seededQ} question(s).`)
 
   // Sample written items (WAT/SCT/SRT/essay/etc).
   let seededW = 0
@@ -197,6 +215,18 @@ async function main() {
     seededA++
   }
   console.warn(`✓ Seeded ${seededA} article(s).`)
+
+  // Curated GK topics. Upserted by slug so re-running the seed republishes
+  // edited content rather than duplicating it, and each topic's flashcards are
+  // rebuilt from its facts so the deck never drifts from the page.
+  let seededT = 0
+  let topicCards = 0
+  for (const topic of CURATED_TOPICS) {
+    const row = await upsertCuratedTopic(topic)
+    topicCards += await rebuildTopicFlashcards(row)
+    seededT++
+  }
+  console.warn(`✓ Seeded ${seededT} GK topic(s) and ${topicCards} topic flashcard(s).`)
 }
 
 try {

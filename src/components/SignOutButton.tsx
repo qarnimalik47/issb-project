@@ -16,7 +16,7 @@ export function SignOutButton({ label }: { label: string }) {
     <button
       onClick={signOut}
       disabled={busy}
-      className="text-sm text-neutral-500 underline hover:text-neutral-900 dark:hover:text-white"
+      className="text-sm font-medium text-ink-muted hover:text-flare-500 disabled:opacity-55"
     >
       {label}
     </button>

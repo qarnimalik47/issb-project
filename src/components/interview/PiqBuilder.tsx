@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 const inputCls =
-  'w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
+  'w-full rounded-md border border-line-strong px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
 
 export function PiqBuilder() {
   const [form, setForm] = useState({
@@ -66,12 +66,12 @@ export function PiqBuilder() {
     if (res.ok) setSaved(true)
   }
 
-  if (loading) return <p className="text-neutral-500">Loading…</p>
+  if (loading) return <p className="text-ink-muted">Loading…</p>
 
   const field = (label: string, key: keyof typeof form, hint?: string) => (
     <div className="flex flex-col gap-1">
       <label className="text-sm font-medium">{label}</label>
-      {hint && <span className="text-xs text-neutral-400">{hint}</span>}
+      {hint && <span className="text-xs text-ink-muted">{hint}</span>}
       {key === 'positionsOfResponsibility' ||
       key === 'strengths' ||
       key === 'weaknesses' ||
@@ -103,7 +103,7 @@ export function PiqBuilder() {
       {field('Weaknesses', 'weaknesses')}
       {field('Why do you want to join?', 'whyJoin')}
       <div className="flex items-center gap-3">
-        <button className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900">
+        <button className="w-fit rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400">
           Save PIQ
         </button>
         {saved && <span className="text-sm text-green-600">Saved ✓</span>}

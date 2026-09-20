@@ -37,17 +37,14 @@ export function GkDrafts() {
   }
 
   if (drafts.length === 0)
-    return <p className="text-sm text-neutral-500">No drafts pending review.</p>
+    return <p className="text-sm text-ink-muted">No drafts pending review.</p>
 
   return (
     <div className="flex flex-col gap-4">
       {drafts.map((d) => (
-        <div
-          key={d.id}
-          className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-        >
+        <div key={d.id} className="rounded-lg border border-line p-4">
           <div className="font-medium">{d.headline}</div>
-          <div className="mt-1 text-xs text-neutral-400">
+          <div className="mt-1 text-xs text-ink-muted">
             {d.category} · {d.sourceName}
           </div>
           <textarea
@@ -62,7 +59,7 @@ export function GkDrafts() {
               }))
             }
             rows={2}
-            className="mt-2 w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="mt-2 w-full rounded border border-line-strong px-2 py-1 text-sm dark:bg-neutral-900"
           />
           <input
             defaultValue={d.issbAngle ?? ''}
@@ -73,7 +70,7 @@ export function GkDrafts() {
                 [d.id]: { ...(s[d.id] ?? { summaryEn: d.summaryEn }), issbAngle: e.target.value },
               }))
             }
-            className="mt-2 w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="mt-2 w-full rounded border border-line-strong px-2 py-1 text-sm dark:bg-neutral-900"
           />
           <div className="mt-2 flex gap-2">
             <button

@@ -22,12 +22,15 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div className="inline-flex items-center gap-1 text-sm" aria-label="Language">
+    <div
+      className="inline-flex items-center gap-0.5 rounded-pill bg-sunk p-0.5 text-sm"
+      aria-label="Language"
+    >
       <button
         type="button"
         disabled={pending || locale === 'en'}
         onClick={() => setLocale('en')}
-        className={`rounded px-2 py-1 ${locale === 'en' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
+        className={`rounded-pill px-2.5 py-1 font-medium transition-colors ${locale === 'en' ? 'bg-surface text-ink shadow-card' : 'text-ink-muted hover:text-ink'}`}
       >
         EN
       </button>
@@ -35,7 +38,7 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
         type="button"
         disabled={pending || locale === 'ur'}
         onClick={() => setLocale('ur')}
-        className={`rounded px-2 py-1 ${locale === 'ur' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
+        className={`rounded-pill px-2.5 py-1 font-medium transition-colors ${locale === 'ur' ? 'bg-surface text-ink shadow-card' : 'text-ink-muted hover:text-ink'}`}
       >
         اردو
       </button>

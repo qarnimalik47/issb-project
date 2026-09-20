@@ -17,7 +17,12 @@ export type DueCard = {
   isNew: boolean
 }
 
-export async function getDueCards(userId: string, limit = 20): Promise<DueCard[]> {
+/**
+ * `deck` narrows a session to one library. With a general-knowledge deck and a
+ * current-affairs deck now both filling from topics, revising everything at
+ * once is rarely what a candidate wants.
+ */
+export async function getDueCards(userId: string, limit = 20, deck?: string): Promise<DueCard[]> {
   // Cards with a due state that has elapsed.
   const dueRows = await db
     .select({ card: flashcards })
@@ -28,6 +33,7 @@ export async function getDueCards(userId: string, limit = 20): Promise<DueCard[]
         eq(flashcardState.userId, userId),
         lte(flashcardState.dueAt, new Date()),
         eq(flashcards.status, 'published'),
+        ...(deck ? [eq(flashcards.deck, deck)] : []),
       ),
     )
     .orderBy(asc(flashcardState.dueAt))
@@ -42,14 +48,19 @@ export async function getDueCards(userId: string, limit = 20): Promise<DueCard[]
     .from(flashcardState)
     .where(eq(flashcardState.userId, userId))
   const seenIds = seen.map((s) => s.cardId)
+  // Ordered oldest-first so the cards a candidate is shown are stable between
+  // sessions; without an order the database may return any subset.
   const newRows = await db
     .select()
     .from(flashcards)
     .where(
-      seenIds.length
-        ? and(eq(flashcards.status, 'published'), notInArray(flashcards.id, seenIds))
-        : eq(flashcards.status, 'published'),
+      and(
+        eq(flashcards.status, 'published'),
+        ...(seenIds.length ? [notInArray(flashcards.id, seenIds)] : []),
+        ...(deck ? [eq(flashcards.deck, deck)] : []),
+      ),
     )
+    .orderBy(asc(flashcards.createdAt))
     .limit(limit - due.length)
 
   return [...due, ...newRows.map((c) => ({ ...toCard(c), isNew: true }))]

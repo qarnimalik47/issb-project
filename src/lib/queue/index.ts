@@ -6,7 +6,7 @@
  * Uses the project's dedicated Redis DB index and an "issb" key prefix so other
  * projects sharing this Redis are unaffected.
  */
-import { Queue, Worker, type Processor, type JobsOptions } from 'bullmq'
+import { Queue, Worker, type Processor, type JobsOptions, type WorkerOptions } from 'bullmq'
 import IORedis from 'ioredis'
 import { env } from '../env/index'
 
@@ -16,6 +16,8 @@ export const QUEUE_NAMES = {
   stt: 'stt',
   evaluation: 'evaluation',
   news: 'news',
+  scrapeFetch: 'scrape-fetch',
+  scrapeExtract: 'scrape-extract',
 } as const
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES]
@@ -62,10 +64,15 @@ export async function enqueue<T>(
 }
 
 /** Create a worker for a queue (used by scripts/worker.ts). */
-export function createWorker<T>(name: QueueName, processor: Processor<T>): Worker<T> {
+export function createWorker<T>(
+  name: QueueName,
+  processor: Processor<T>,
+  opts: Pick<WorkerOptions, 'concurrency' | 'limiter'> = {},
+): Worker<T> {
   return new Worker<T>(name, processor, {
     connection: createQueueConnection(),
     prefix: PREFIX,
     concurrency: 4,
+    ...opts,
   })
 }

@@ -10,7 +10,9 @@ export default async function VerifyPage() {
   const { t } = await getT()
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">{t.auth.verifyTitle}</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
+        {t.auth.verifyTitle}
+      </h1>
       <VerifyForm t={t} />
     </div>
   )

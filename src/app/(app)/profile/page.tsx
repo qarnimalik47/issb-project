@@ -10,7 +10,9 @@ export default async function ProfilePage() {
   const { t } = await getT()
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">{t.profile.title}</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        {t.profile.title}
+      </h1>
       <ProfilePanel t={t} user={toPublicUser(user)} />
     </div>
   )

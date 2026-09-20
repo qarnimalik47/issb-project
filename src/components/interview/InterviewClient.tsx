@@ -52,13 +52,13 @@ export function InterviewClient() {
   if (phase === 'intro') {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-ink-muted">
           Your interview questions are generated from your own PIQ. Answer honestly and consistently
           with your written tests. You can type or record each answer.
         </p>
         <button
           onClick={start}
-          className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900"
+          className="w-fit rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
         >
           Start mock interview
         </button>
@@ -78,10 +78,7 @@ export function InterviewClient() {
   return (
     <div className="flex flex-col gap-6">
       {items.map((it, i) => (
-        <div
-          key={it.ref}
-          className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-        >
+        <div key={it.ref} className="rounded-lg border border-line p-4">
           <div className="font-medium">
             Q{i + 1}. {it.prompt}
           </div>
@@ -90,11 +87,11 @@ export function InterviewClient() {
             value={answers[it.ref] ?? ''}
             onChange={(e) => setAnswers((a) => ({ ...a, [it.ref]: e.target.value }))}
             placeholder="Type your answer…"
-            className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="mt-2 w-full rounded-md border border-line-strong px-3 py-2 text-sm dark:bg-neutral-900"
           />
           {attemptId && (
             <details className="mt-2">
-              <summary className="cursor-pointer text-xs text-neutral-500">
+              <summary className="cursor-pointer text-xs text-ink-muted">
                 Answer by voice instead
               </summary>
               <div className="mt-2">

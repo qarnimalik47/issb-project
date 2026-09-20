@@ -97,10 +97,10 @@ describe('PDF import pipeline (integration)', () => {
     expect(withAnswer).toBeTruthy()
 
     // Approve one → it should appear in the live bank as a draft.
-    const questionId = await approveStagingItem(staged[0]!.id, adminId)
-    expect(questionId).not.toBe('duplicate')
+    const { questionId, duplicate } = await approveStagingItem(staged[0]!.id, adminId)
+    expect(duplicate).toBe(false)
 
-    const [live] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1)
+    const [live] = await db.select().from(questions).where(eq(questions.id, questionId!)).limit(1)
     expect(live).toBeTruthy()
     expect(live!.status).toBe('draft')
 

@@ -25,32 +25,31 @@ export default async function WrittenListPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Written tests</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        Written tests
+      </h1>
       <div className="grid gap-4 sm:grid-cols-2">
         {rows.map((r) => (
-          <div
-            key={r.id}
-            className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-          >
+          <div key={r.id} className="rounded-lg border border-line p-4">
             <div className="font-medium">{locale === 'ur' ? r.nameUr : r.nameEn}</div>
-            <div className="mt-1 text-sm text-neutral-500">{r.count} items available</div>
+            <div className="mt-1 text-sm text-ink-muted">{r.count} items available</div>
             {r.count > 0 ? (
               <div className="mt-3 flex gap-2">
                 <a
                   href={`/written/${r.id}?mode=typed`}
-                  className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-neutral-900"
+                  className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
                 >
                   Type
                 </a>
                 <a
                   href={`/written/${r.id}?mode=paper`}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+                  className="rounded-md border border-line-strong px-3 py-1.5 text-sm"
                 >
                   Paper
                 </a>
               </div>
             ) : (
-              <span className="mt-3 inline-block text-sm text-neutral-400">Coming soon</span>
+              <span className="mt-3 inline-block text-sm text-ink-muted">Coming soon</span>
             )}
           </div>
         ))}

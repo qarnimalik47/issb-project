@@ -20,8 +20,19 @@ export type ExtractedQuestion = {
 }
 
 const OPTION_RE = /(?:^|\s)\(?([A-Da-d])[.)]\s+/g
-const ANSWER_RE = /(?:Ans(?:wer)?|Correct)\s*[:.\-]?\s*\(?([A-Da-d])\)?/i
+// The letter must not run on into a word: without the lookahead, "Correct
+// answer: (b)" matched "Correct a" and keyed the answer as A.
+const ANSWER_RE =
+  /(?:Ans(?:wer)?|Correct(?:\s+answer)?)\s*(?:is)?\s*[:.\-]?\s*\(?([A-Da-d])\)?(?![A-Za-z])/i
 const QUESTION_SPLIT_RE = /(?:^|\n|\s)(\d{1,3})[.)]\s+/g
+
+/**
+ * Fresh instances for other modules (the HTML extractor). Never share the
+ * constants above across modules: `g`-flagged regexes carry a mutable
+ * `lastIndex`, and a shared instance leaks match state between callers.
+ */
+export const answerPattern = () => new RegExp(ANSWER_RE.source, ANSWER_RE.flags)
+export const optionPattern = () => new RegExp(OPTION_RE.source, OPTION_RE.flags)
 
 export function questionContentHash(stem: string, options: { textEn: string }[] = []): string {
   // Normalise each part independently so trailing/collapsed whitespace never

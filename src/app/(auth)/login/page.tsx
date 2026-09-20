@@ -8,9 +8,11 @@ export default async function LoginPage() {
   const { t } = await getT()
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">{t.auth.loginTitle}</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
+        {t.auth.loginTitle}
+      </h1>
       <LoginForm t={t} />
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-ink-muted">
         {t.auth.noAccount}{' '}
         <a href="/register" className="underline">
           {t.common.register}

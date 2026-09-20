@@ -10,12 +10,14 @@ import {
   integer,
   numeric,
   date,
+  jsonb,
   timestamp,
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
+import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 import { users } from './identity'
-import { contentStatus } from './enums'
+import { contentStatus, gkTopicKind } from './enums'
 
 export const gkArticles = pgTable(
   'gk_articles',
@@ -52,10 +54,17 @@ export const flashcards = pgTable(
     backEn: text('back_en').notNull(),
     backUr: text('back_ur'),
     topic: text('topic'),
+    /** Cards generated from a topic are replaced wholesale when it is
+        re-gathered, so they carry the topic they came from. */
+    topicId: uuid('topic_id').references((): AnyPgColumn => gkTopics.id, { onDelete: 'cascade' }),
     status: contentStatus('status').notNull().default('published'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('flashcards_deck_idx').on(t.deck), index('flashcards_status_idx').on(t.status)],
+  (t) => [
+    index('flashcards_deck_idx').on(t.deck),
+    index('flashcards_status_idx').on(t.status),
+    index('flashcards_topic_idx').on(t.topicId),
+  ],
 )
 
 export const flashcardState = pgTable(
@@ -94,6 +103,65 @@ export const gkBookmarks = pgTable(
   },
   (t) => [uniqueIndex('gk_bookmarks_user_article_key').on(t.userId, t.articleId)],
 )
+
+/** A single sourced fact: "Date of birth — 25 December 1876". */
+export type GkFact = { label: string; value: string; sourceIndex?: number }
+
+/** A headed group of bullet points, e.g. "Origin" or "Role in the movement". */
+export type GkPointGroup = { heading: string; bullets: string[] }
+
+export type GkTimelineEntry = { date: string; event: string }
+
+/** Provenance is shown to candidates, so the licence travels with the link. */
+export type GkSource = {
+  name: string
+  url: string
+  license: string
+  retrievedAt: string
+}
+
+/** Related headlines only — never the body text of a news article. */
+export type GkCoverage = { headline: string; url: string; sourceName: string; date?: string }
+
+/**
+ * A topic page. Curated GK topics are seeded once and edited by hand; current
+ * affairs topics are gathered from free sources and refreshed in place, so the
+ * same topic always lands in the same row rather than accumulating duplicates.
+ */
+export const gkTopics = pgTable(
+  'gk_topics',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    kind: gkTopicKind('kind').notNull(),
+    slug: text('slug').notNull(),
+    titleEn: text('title_en').notNull(),
+    titleUr: text('title_ur'),
+    section: text('section').notNull(),
+    summaryEn: text('summary_en').notNull(),
+    summaryUr: text('summary_ur'),
+    issbAngle: text('issb_angle'),
+    facts: jsonb('facts').$type<GkFact[]>().notNull().default([]),
+    points: jsonb('points').$type<GkPointGroup[]>().notNull().default([]),
+    timeline: jsonb('timeline').$type<GkTimelineEntry[]>().notNull().default([]),
+    sources: jsonb('sources').$type<GkSource[]>().notNull().default([]),
+    coverage: jsonb('coverage').$type<GkCoverage[]>().notNull().default([]),
+    /** 'curated' = written by us and seeded; 'gathered' = built by the job. */
+    origin: text('origin').notNull().default('curated'),
+    /** Which model wrote the narrative, or null when facts-only. */
+    narrativeModel: text('narrative_model'),
+    status: contentStatus('status').notNull().default('published'),
+    lastGatheredAt: timestamp('last_gathered_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('gk_topics_kind_slug_key').on(t.kind, t.slug),
+    index('gk_topics_kind_section_idx').on(t.kind, t.section),
+    index('gk_topics_status_idx').on(t.status),
+  ],
+)
+
+export type GkTopic = typeof gkTopics.$inferSelect
 
 export type GkArticle = typeof gkArticles.$inferSelect
 export type Flashcard = typeof flashcards.$inferSelect

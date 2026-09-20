@@ -14,11 +14,14 @@ const steps = [
   ['Unit/integration tests', ['run', 'test']],
 ]
 
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const isWindows = process.platform === 'win32'
+const npm = isWindows ? 'npm.cmd' : 'npm'
 
 for (const [name, args] of steps) {
   console.log(`\n\x1b[1m=== ${name} ===\x1b[0m`)
-  const result = spawnSync(npm, args, { stdio: 'inherit' })
+  // Node >= 20.12 refuses to spawn a .cmd without a shell (CVE-2024-27980) and
+  // fails with EINVAL. Safe here: every argument is a constant from `steps`.
+  const result = spawnSync(npm, args, { stdio: 'inherit', shell: isWindows })
   if (result.status !== 0) {
     console.error(`\n\x1b[31m✗ ${name} failed. CI aborted.\x1b[0m`)
     process.exit(result.status ?? 1)

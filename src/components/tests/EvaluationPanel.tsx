@@ -56,7 +56,7 @@ export function EvaluationPanel({ attemptId }: { attemptId: string }) {
       <div className="flex flex-col gap-2">
         <button
           onClick={evaluate}
-          className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900"
+          className="w-fit rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
         >
           Get AI evaluation
         </button>
@@ -66,7 +66,7 @@ export function EvaluationPanel({ attemptId }: { attemptId: string }) {
   }
 
   if (state === 'requesting' || state === 'polling') {
-    return <p className="text-sm text-neutral-500">Evaluating your responses…</p>
+    return <p className="text-sm text-ink-muted">Evaluating your responses…</p>
   }
 
   return (
@@ -77,10 +77,7 @@ export function EvaluationPanel({ attemptId }: { attemptId: string }) {
         </div>
       )}
       {items.map((it) => (
-        <div
-          key={it.ref}
-          className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-        >
+        <div key={it.ref} className="rounded-lg border border-line p-4">
           <div className="mb-2 font-medium">{it.prompt}</div>
           {it.distress ? (
             <p className="text-sm text-amber-600">
@@ -92,7 +89,7 @@ export function EvaluationPanel({ attemptId }: { attemptId: string }) {
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex flex-wrap gap-2">
                 {Object.entries(it.output.criteria).map(([k, v]) => (
-                  <span key={k} className="rounded bg-neutral-100 px-2 py-0.5 dark:bg-neutral-800">
+                  <span key={k} className="rounded bg-sunk px-2 py-0.5">
                     {k}: {v.score}/5
                   </span>
                 ))}
@@ -114,7 +111,7 @@ export function EvaluationPanel({ attemptId }: { attemptId: string }) {
               )}
             </div>
           ) : (
-            <p className="text-sm text-neutral-500">Not yet evaluated.</p>
+            <p className="text-sm text-ink-muted">Not yet evaluated.</p>
           )}
         </div>
       ))}

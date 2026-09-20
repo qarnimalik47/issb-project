@@ -34,10 +34,13 @@
     "eval:accuracy": "tsx scripts/eval-accuracy.ts",
     "ingest:news": "tsx scripts/ingest-news.ts",
     "expire-subscriptions": "tsx scripts/expire-subscriptions.ts",
+    "sweep-attempts": "tsx scripts/sweep-attempts.ts",
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
     "ci": "node scripts/ci.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "gk:gather": "tsx scripts/gather-topic.ts",
+    "gk:gather:core": "tsx scripts/gather-core.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs}": [
@@ -51,6 +54,7 @@
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
     "bullmq": "^6.3.6",
+    "cheerio": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "ioredis": "^6.0.0",
     "jose": "^6.2.12",
@@ -60,6 +64,7 @@
     "postgres": "^3.4.9",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "robots-parser": "^3.0.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

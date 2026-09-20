@@ -54,11 +54,11 @@ export function BillingClient() {
     if (res.ok && d.checkoutUrl) window.location.assign(d.checkoutUrl)
   }
 
-  if (!sub) return <p className="text-neutral-500">Loading…</p>
+  if (!sub) return <p className="text-ink-muted">Loading…</p>
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-md border border-neutral-200 p-4 text-sm dark:border-neutral-800">
+      <div className="rounded-md border border-line p-4 text-sm">
         Current plan: <strong className="uppercase">{sub.plan}</strong> · AI evaluations/day:{' '}
         {sub.entitlements.aiEvaluationsPerDay} · expert reviews/month:{' '}
         {sub.entitlements.expertReviewsPerMonth}
@@ -66,19 +66,16 @@ export function BillingClient() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {PLAN_CARDS.map((p) => (
-          <div
-            key={p.code}
-            className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-          >
+          <div key={p.code} className="rounded-lg border border-line p-4">
             <div className="text-lg font-semibold">{p.name}</div>
-            <p className="mt-1 text-sm text-neutral-500">{p.blurb}</p>
-            <p className="mt-1 text-xs text-neutral-400">
+            <p className="mt-1 text-sm text-ink-muted">{p.blurb}</p>
+            <p className="mt-1 text-xs text-ink-muted">
               Price set by the platform (demo uses a mock gateway).
             </p>
             <button
               onClick={() => subscribe(p.code)}
               disabled={busy === p.code || sub.plan === p.code}
-              className="mt-3 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+              className="mt-3 rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
             >
               {sub.plan === p.code
                 ? 'Current'
@@ -92,7 +89,7 @@ export function BillingClient() {
 
       {sub.invoices.length > 0 && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">Invoices</h2>
+          <h2 className="mb-2 font-display text-lg font-semibold text-ink">Invoices</h2>
           <ul className="text-sm">
             {sub.invoices.map((inv) => (
               <li
