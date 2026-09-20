@@ -25,16 +25,19 @@ type Attempt = {
 }
 
 const inputCls =
-  'w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
+  'w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900'
 
 export function WrittenPlayer({
   testTypeId,
   mode,
   locale,
+  setId = null,
 }: {
   testTypeId: string
   mode: 'typed' | 'paper'
   locale: Locale
+  /** Run one numbered set rather than the whole published pool. */
+  setId?: string | null
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -66,7 +69,7 @@ export function WrittenPlayer({
     fetch('/api/written', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ testTypeId, mode }),
+      body: JSON.stringify({ testTypeId, mode, ...(setId ? { bankId: setId } : {}) }),
     })
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
@@ -80,7 +83,7 @@ export function WrittenPlayer({
         if (at.timing.perItemSeconds) setWatLeft(at.timing.perItemSeconds)
       })
       .catch(() => setError('Network error'))
-  }, [testTypeId, mode])
+  }, [testTypeId, mode, setId])
 
   const submit = useCallback(async () => {
     if (!attempt) return
@@ -132,13 +135,13 @@ export function WrittenPlayer({
   }, [answers, attempt, isWat, done, mode, save])
 
   if (error) return <p className="text-red-600">{error}</p>
-  if (!attempt) return <p className="text-neutral-500">Loading…</p>
+  if (!attempt) return <p className="text-ink-muted">Loading…</p>
   if (done) {
     return (
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border border-green-300 bg-green-50 p-6 dark:border-green-800 dark:bg-green-950">
           <p className="font-medium">Your responses were captured.</p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-ink-muted">
             You can now request rubric-based AI feedback on your responses.
           </p>
         </div>
@@ -154,7 +157,7 @@ export function WrittenPlayer({
   if (mode === 'paper') {
     return (
       <div className="flex flex-col gap-6">
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-ink-muted">
           Paper mode: read the prompt, write on paper within the time, then photograph and upload
           your answer sheet. You will confirm the extracted text before it is saved.
         </p>
@@ -177,7 +180,7 @@ export function WrittenPlayer({
     if (!item) return <p>Done.</p>
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between text-sm text-neutral-500">
+        <div className="flex items-center justify-between text-sm text-ink-muted">
           <span>
             Word {wi + 1} / {attempt.items.length}
           </span>
@@ -185,7 +188,7 @@ export function WrittenPlayer({
             {watLeft}s
           </span>
         </div>
-        <div className="rounded-lg border border-neutral-200 p-8 text-center dark:border-neutral-800">
+        <div className="rounded-lg border border-line p-8 text-center">
           <div className="text-3xl font-semibold">
             {ur && item.promptUr ? item.promptUr : item.prompt}
           </div>
@@ -198,7 +201,7 @@ export function WrittenPlayer({
           placeholder="Write the first sentence that comes to mind…"
           className={inputCls}
         />
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-ink-muted">
           Auto-advances when the timer ends. Blanks are allowed.
         </p>
       </div>
@@ -282,16 +285,16 @@ function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur:
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="rounded-lg border border-line p-4">
       <div className="mb-2 font-medium">{ur && item.promptUr ? item.promptUr : item.prompt}</div>
       {status === 'idle' && (
         <input type="file" accept="image/jpeg,image/png" onChange={upload} className="text-sm" />
       )}
-      {status === 'uploading' && <p className="text-sm text-neutral-500">Uploading…</p>}
-      {status === 'processing' && <p className="text-sm text-neutral-500">Extracting text…</p>}
+      {status === 'uploading' && <p className="text-sm text-ink-muted">Uploading…</p>}
+      {status === 'processing' && <p className="text-sm text-ink-muted">Extracting text…</p>}
       {(status === 'ready' || status === 'confirmed') && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-ink-muted">
             {ocrText
               ? 'Review and correct the extracted text:'
               : 'OCR unavailable — type your answer from the image:'}
@@ -306,7 +309,7 @@ function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur:
           {status === 'ready' ? (
             <button
               onClick={confirm}
-              className="w-fit rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-neutral-900"
+              className="w-fit rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400"
             >
               Confirm text
             </button>

@@ -3,6 +3,8 @@ import { z } from 'zod'
 export const startWrittenSchema = z.object({
   testTypeId: z.uuid(),
   mode: z.enum(['typed', 'paper']).default('typed'),
+  /** Run a specific numbered set; omitted means the whole published pool. */
+  bankId: z.uuid().optional(),
 })
 
 export const saveWrittenSchema = z.object({

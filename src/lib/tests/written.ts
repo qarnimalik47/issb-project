@@ -3,10 +3,10 @@
  * Supports typed and paper (photo + OCR) modes with per-item timing metadata
  * and robust autosave. AI evaluation of these responses arrives in Phase 5.
  */
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db/index'
 import { attempts, writtenResponses } from '../db/schema/attempts'
-import { questions, testTypes, mediaAssets } from '../db/schema/content'
+import { questionBanks, questions, testTypes, mediaAssets } from '../db/schema/content'
 import { ApiError } from '../api/errors'
 import { isUniqueViolation } from '../db/errors'
 import { storage } from '../storage/index'
@@ -42,10 +42,18 @@ export type WrittenAttemptView = {
 
 type WrittenConfig = { items: WrittenItem[]; timing: Record<string, number> }
 
+/**
+ * Start (or resume) a written attempt.
+ *
+ * With `bankId`, the attempt runs that numbered set in its stored order, so a
+ * WAT or SCT set is the same items each sitting and can be marked done. Without
+ * one, the whole published pool is used, capped at `timing.itemCount`.
+ */
 export async function startWrittenAttempt(
   userId: string,
   testTypeId: string,
   mode: 'typed' | 'paper',
+  bankId?: string | null,
 ): Promise<WrittenAttemptView> {
   const existing = await db
     .select()
@@ -58,7 +66,17 @@ export async function startWrittenAttempt(
       ),
     )
     .limit(1)
-  if (existing[0]) return getWrittenAttempt(userId, existing[0].id)
+  if (existing[0]) {
+    // Same rule as the MCQ player: one active attempt per test type, so name
+    // the set that is blocking instead of quietly running a different one.
+    if (bankId && existing[0].bankId && existing[0].bankId !== bankId) {
+      throw new ApiError(
+        'conflict',
+        'Another test of this type is still in progress. Finish or abandon it first.',
+      )
+    }
+    return getWrittenAttempt(userId, existing[0].id)
+  }
 
   const [tt] = await db.select().from(testTypes).where(eq(testTypes.id, testTypeId)).limit(1)
   if (!tt) throw new ApiError('bad_request', 'Unknown test type')
@@ -66,15 +84,41 @@ export async function startWrittenAttempt(
     throw new ApiError('bad_request', 'This test type is not a written (rubric) test')
   }
 
-  const pool = await db
-    .select({ id: questions.id, stemEn: questions.stemEn, stemUr: questions.stemUr })
-    .from(questions)
-    .where(and(eq(questions.testTypeId, testTypeId), eq(questions.status, 'published')))
+  let pool: { id: string; stemEn: string; stemUr: string | null }[]
+  if (bankId) {
+    const [bank] = await db
+      .select({
+        id: questionBanks.id,
+        status: questionBanks.status,
+        testTypeId: questionBanks.testTypeId,
+      })
+      .from(questionBanks)
+      .where(eq(questionBanks.id, bankId))
+      .limit(1)
+    if (!bank || bank.testTypeId !== testTypeId) throw new ApiError('not_found', 'Unknown test set')
+    if (bank.status !== 'published') {
+      throw new ApiError('bad_request', 'This test set is not available yet')
+    }
+    pool = await db
+      .select({ id: questions.id, stemEn: questions.stemEn, stemUr: questions.stemUr })
+      .from(questions)
+      .where(and(eq(questions.bankId, bankId), eq(questions.status, 'published')))
+      .orderBy(asc(questions.createdAt), asc(questions.id))
+  } else {
+    pool = await db
+      .select({ id: questions.id, stemEn: questions.stemEn, stemUr: questions.stemUr })
+      .from(questions)
+      .where(and(eq(questions.testTypeId, testTypeId), eq(questions.status, 'published')))
+  }
   if (pool.length === 0) throw new ApiError('bad_request', 'No published items for this test yet')
 
   const timing = (tt.timing ?? {}) as Record<string, number>
-  const count =
-    timing.itemCount && timing.itemCount > 0 ? Math.min(timing.itemCount, pool.length) : pool.length
+  // A numbered set is already the right length; only the free pool needs capping.
+  const count = bankId
+    ? pool.length
+    : timing.itemCount && timing.itemCount > 0
+      ? Math.min(timing.itemCount, pool.length)
+      : pool.length
   const items: WrittenItem[] = pool.slice(0, count).map((q, i) => ({
     ref: String(i),
     questionId: q.id,
@@ -95,6 +139,7 @@ export async function startWrittenAttempt(
       .values({
         userId,
         testTypeId,
+        bankId: bankId ?? null,
         mode,
         status: 'in_progress',
         deadlineAt,

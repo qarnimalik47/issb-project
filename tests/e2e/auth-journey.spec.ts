@@ -28,7 +28,10 @@ test('full account lifecycle', async ({ page }) => {
   await page.fill('input[name="code"]', code)
   await page.click('button[type="submit"]')
   await page.waitForURL('**/dashboard')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('E2E Tester')
+  // The dashboard h1 is a fixed title ("Your preparation"), not a greeting —
+  // the signed-in identity shows in the nav, so that is what proves the session.
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByText('E2E Tester').first()).toBeVisible()
 
   // Profile update
   await page.goto('/profile')

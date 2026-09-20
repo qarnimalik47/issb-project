@@ -6,12 +6,17 @@ export default async function WrittenPlayPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ mode?: string }>
+  searchParams: Promise<{ mode?: string; set?: string }>
 }) {
   const { id } = await params
-  const { mode } = await searchParams
+  const { mode, set } = await searchParams
   const locale = await getLocale()
   return (
-    <WrittenPlayer testTypeId={id} mode={mode === 'paper' ? 'paper' : 'typed'} locale={locale} />
+    <WrittenPlayer
+      testTypeId={id}
+      mode={mode === 'paper' ? 'paper' : 'typed'}
+      locale={locale}
+      setId={set ?? null}
+    />
   )
 }

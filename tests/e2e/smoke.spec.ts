@@ -6,7 +6,10 @@ import { test, expect } from '@playwright/test'
  */
 test('landing page renders with the independence disclaimer', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'ISSB Prep Platform' })).toBeVisible()
+  // The h1 is marketing copy and has been reworded once already; assert on the
+  // brand in the masthead instead, which is what "the page rendered" means here.
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('banner').getByText('ISSB Prep Platform').first()).toBeVisible()
   await expect(page.getByText(/not affiliated with/i)).toBeVisible()
 })
 

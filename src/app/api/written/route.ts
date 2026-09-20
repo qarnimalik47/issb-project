@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export const POST = route(async (req) => {
   const user = await requireUser()
   await enforceRateLimit(`written-start:${user.id}`, 30, 3600)
-  const { testTypeId, mode } = await readBody(req, startWrittenSchema)
-  const attempt = await startWrittenAttempt(user.id, testTypeId, mode)
+  const { testTypeId, mode, bankId } = await readBody(req, startWrittenSchema)
+  const attempt = await startWrittenAttempt(user.id, testTypeId, mode, bankId)
   return json({ attempt }, { status: 201 })
 })

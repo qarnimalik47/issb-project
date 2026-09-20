@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic'
 export const POST = route(async (req) => {
   const user = await requireUser()
   await enforceRateLimit(`attempt-start:${user.id}`, 30, 3600)
-  const { testTypeId } = await readBody(req, startAttemptSchema)
+  const { testTypeId, bankId } = await readBody(req, startAttemptSchema)
   // Known problems throw typed ApiErrors; unexpected DB errors become a safe 500.
-  const attempt = await startAttempt(user.id, testTypeId)
+  const attempt = await startAttempt(user.id, testTypeId, bankId)
   return json({ attempt }, { status: 201 })
 })
