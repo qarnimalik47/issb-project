@@ -82,12 +82,20 @@ async function main() {
   }[] = []
 
   for (const tt of types) {
-    // Deterministic order, so a rebuild reproduces the same sets.
+    // Published first, then oldest first. Ordering by date alone would scatter
+    // the original published items through sets that also hold imported drafts,
+    // and a set is only playable when every item in it is live — so mixing them
+    // would leave a type with real content and not one usable test. This way the
+    // early sets are the ready ones and anything still draft collects at the end.
     const pool = await db
       .select({ id: questions.id, status: questions.status })
       .from(questions)
       .where(eq(questions.testTypeId, tt.id))
-      .orderBy(asc(questions.createdAt), asc(questions.id))
+      .orderBy(
+        dsql`case when ${questions.status} = 'published' then 0 else 1 end`,
+        asc(questions.createdAt),
+        asc(questions.id),
+      )
 
     if (pool.length === 0) {
       summary.push({

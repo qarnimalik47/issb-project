@@ -59,9 +59,39 @@ test('a numbered set can be taken and is then marked done', async ({ page }) => 
   await expect(page.getByText(/1 of \d+ done/)).toBeVisible()
 })
 
+test('a psychological (written) set can be taken and is then marked done', async ({ page }) => {
+  await registerAndVerify(page.request)
+
+  // SRT is rubric-scored, so its sets run through the written player rather
+  // than the MCQ one — the same list, a different route. SRT rather than WAT
+  // because WAT is a timed one-word-at-a-time player (50 items × 10s), which
+  // is a fine test to sit and a terrible one to automate.
+  await page.goto('/practice/sets/srt')
+  await expect(page.getByRole('heading', { name: /Situation Reaction.*tests/ })).toBeVisible()
+
+  const firstSet = page.locator('[data-testid^="test-set-"]').first()
+  await expect(firstSet).toHaveAttribute('data-state', 'available')
+  await firstSet.getByRole('link', { name: 'Start' }).click()
+
+  const boxes = page.locator('textarea')
+  await expect(boxes.first()).toBeVisible()
+  // Reacting to each situation in a line is the whole task; three is enough to
+  // prove capture works without writing out the full set.
+  for (let i = 0; i < 3; i++) await boxes.nth(i).fill(`A steady response ${i + 1}.`)
+  await page.getByRole('button', { name: 'Submit', exact: true }).click()
+  await expect(page.getByText(/responses were captured/i)).toBeVisible({ timeout: 15_000 })
+
+  await page.goto('/practice/sets/srt')
+  const done = page.locator('[data-testid^="test-set-"][data-state="done"]')
+  await expect(done).toHaveCount(1)
+  await expect(done.getByRole('link', { name: 'Retake' })).toBeVisible()
+  await expect(page.getByText(/1 of \d+ done/)).toBeVisible()
+})
+
 test('a set whose items are not all published stays locked', async ({ page }) => {
   await registerAndVerify(page.request)
-  // SCT was imported as drafts, so every one of its sets is gated.
+  // SCT's early sets come from the original bank and are live; the later ones
+  // hold the imported drafts, so they stay gated.
   await page.goto('/practice/sets/sct')
   await expect(page.getByRole('heading', { name: /Sentence Completion.*tests/ })).toBeVisible()
 

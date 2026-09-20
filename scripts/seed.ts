@@ -27,6 +27,7 @@ import { VERBAL_QUESTIONS } from '../src/lib/db/seed-data/verbal-questions'
 import { GK_QUESTIONS } from '../src/lib/db/seed-data/gk-questions'
 import { MECHANICAL_QUESTIONS } from '../src/lib/db/seed-data/mechanical-questions'
 import { WRITTEN_ITEMS } from '../src/lib/db/seed-data/written-items'
+import { PSYCH_ITEMS } from '../src/lib/db/seed-data/psych-items'
 import {
   DEFAULT_RUBRIC_CRITERIA,
   DEFAULT_RUBRIC_OUTPUT_SCHEMA,
@@ -122,9 +123,10 @@ async function main() {
   }
   console.warn(`✓ Seeded ${seededQ} question(s).`)
 
-  // Sample written items (WAT/SCT/SRT/essay/etc).
+  // Written items: the original psychological banks (WAT/SCT/SRT/self
+  // description/pointer story) plus the demo items for the remaining formats.
   let seededW = 0
-  for (const wi of WRITTEN_ITEMS) {
+  for (const wi of [...WRITTEN_ITEMS, ...PSYCH_ITEMS]) {
     const testTypeId = typeByCode.get(wi.testTypeCode)
     if (!testTypeId) continue
     const contentHash = questionContentHash(wi.stemEn, [])
@@ -140,7 +142,17 @@ async function main() {
       })
       .onConflictDoUpdate({
         target: questions.contentHash,
-        set: { status: 'published', updatedAt: new Date() },
+        // Adopt the seed's wording, not just its status. Some stimulus words
+        // ("Trust", "Courage") already exist as rows imported from third-party
+        // sheets; a single common word is not ownable, but the row should still
+        // end up being the seed's item — its Urdu, its topic — rather than an
+        // imported row quietly flipped live.
+        set: {
+          stemUr: wi.stemUr,
+          topic: wi.topic,
+          status: 'published',
+          updatedAt: new Date(),
+        },
       })
       .returning({ id: questions.id })
     if (res[0]) seededW++
