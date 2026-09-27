@@ -110,4 +110,45 @@ describe('written capture pipeline (integration)', () => {
     expect(confirmed.responses[ref]?.ocrConfirmed).toBe(true)
     expect(confirmed.responses[ref]?.text).toBe('This is my corrected answer.')
   })
+
+  it('picture story: each item carries a signed link to its picture', async () => {
+    const [tt] = await db
+      .insert(testTypes)
+      .values({
+        code: `it_tat_${Date.now()}`,
+        nameEn: 'IT TAT',
+        nameUr: 'ٹیسٹ',
+        dimension: 'psychologist',
+        scoringType: 'rubric',
+        timing: { viewSeconds: 30, writeSeconds: 210, itemCount: 4 },
+      })
+      .returning({ id: testTypes.id })
+    const storageKey = `media/it-tat-${Date.now()}.jpg`
+    await storage.put(storageKey, Buffer.from([0xff, 0xd8, 0xff]), { mime: 'image/jpeg' })
+    const [media] = await db
+      .insert(mediaAssets)
+      .values({ kind: 'story_picture', storageKey, mime: 'image/jpeg', sizeBytes: 3 })
+      .returning({ id: mediaAssets.id })
+    await db.insert(questions).values({
+      testTypeId: tt!.id,
+      stemEn: 'A man leans out of a moving train.',
+      mediaId: media!.id,
+      contentHash: `${tt!.id}:tat`,
+      status: 'published',
+    })
+    try {
+      const attempt = await startWrittenAttempt(userId, tt!.id, 'typed')
+      expect(attempt.items[0]!.mediaId).toBe(media!.id)
+      expect(attempt.items[0]!.imageUrl).toMatch(/^\/api\/files\/media\/it-tat-.*sig=/)
+      // A reload re-signs the link from the stored media id.
+      const reloaded = await getWrittenAttempt(userId, attempt.id)
+      expect(reloaded.items[0]!.imageUrl).toContain(storageKey)
+    } finally {
+      await db.delete(attempts).where(eq(attempts.testTypeId, tt!.id))
+      await db.delete(questions).where(eq(questions.testTypeId, tt!.id))
+      await db.delete(mediaAssets).where(eq(mediaAssets.id, media!.id))
+      await db.delete(testTypes).where(eq(testTypes.id, tt!.id))
+      await storage.delete(storageKey)
+    }
+  })
 })

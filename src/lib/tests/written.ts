@@ -9,7 +9,7 @@ import { attempts, writtenResponses } from '../db/schema/attempts'
 import { questionBanks, questions, testTypes, mediaAssets } from '../db/schema/content'
 import { ApiError } from '../api/errors'
 import { isUniqueViolation } from '../db/errors'
-import { storage } from '../storage/index'
+import { storage, signedUrl } from '../storage/index'
 import { enqueue, QUEUE_NAMES } from '../queue/index'
 import { getOcrAdapter } from '../ocr/index'
 import { getSttAdapter } from '../stt/index'
@@ -19,7 +19,12 @@ export type WrittenItem = {
   questionId: string
   prompt: string
   promptUr: string | null
+  /** Picture Story: the picture shown before writing. Stored with the attempt. */
+  mediaId?: string | null
 }
+
+/** What the player receives: the stored item plus a short-lived link to its picture. */
+export type WrittenItemView = WrittenItem & { imageUrl: string | null }
 
 export type WrittenResponseView = {
   ref: string
@@ -35,7 +40,7 @@ export type WrittenAttemptView = {
   status: string
   mode: string
   timing: Record<string, number>
-  items: WrittenItem[]
+  items: WrittenItemView[]
   responses: Record<string, WrittenResponseView>
   remainingSeconds: number | null
 }
@@ -84,7 +89,7 @@ export async function startWrittenAttempt(
     throw new ApiError('bad_request', 'This test type is not a written (rubric) test')
   }
 
-  let pool: { id: string; stemEn: string; stemUr: string | null }[]
+  let pool: { id: string; stemEn: string; stemUr: string | null; mediaId: string | null }[]
   if (bankId) {
     const [bank] = await db
       .select({
@@ -100,13 +105,23 @@ export async function startWrittenAttempt(
       throw new ApiError('bad_request', 'This test set is not available yet')
     }
     pool = await db
-      .select({ id: questions.id, stemEn: questions.stemEn, stemUr: questions.stemUr })
+      .select({
+        id: questions.id,
+        stemEn: questions.stemEn,
+        stemUr: questions.stemUr,
+        mediaId: questions.mediaId,
+      })
       .from(questions)
       .where(and(eq(questions.bankId, bankId), eq(questions.status, 'published')))
       .orderBy(asc(questions.createdAt), asc(questions.id))
   } else {
     pool = await db
-      .select({ id: questions.id, stemEn: questions.stemEn, stemUr: questions.stemUr })
+      .select({
+        id: questions.id,
+        stemEn: questions.stemEn,
+        stemUr: questions.stemUr,
+        mediaId: questions.mediaId,
+      })
       .from(questions)
       .where(and(eq(questions.testTypeId, testTypeId), eq(questions.status, 'published')))
   }
@@ -124,6 +139,7 @@ export async function startWrittenAttempt(
     questionId: q.id,
     prompt: q.stemEn,
     promptUr: q.stemUr,
+    mediaId: q.mediaId,
   }))
 
   // Overall guard deadline: explicit total, or per-item * count for WAT-style.
@@ -205,10 +221,34 @@ export async function getWrittenAttempt(
     status: attempt.status,
     mode: attempt.mode,
     timing: config.timing,
-    items: config.items,
+    items: await withImages(config.items, remainingSeconds),
     responses,
     remainingSeconds,
   }
+}
+
+/**
+ * Sign a link for each item's picture. Links outlive the attempt's remaining
+ * time (plus a margin) so a picture never breaks mid-test; the page re-fetches
+ * the attempt on reload, which mints fresh ones.
+ */
+async function withImages(
+  items: WrittenItem[],
+  remainingSeconds: number | null,
+): Promise<WrittenItemView[]> {
+  const ids = [...new Set(items.map((i) => i.mediaId).filter((m): m is string => !!m))]
+  const keys = ids.length
+    ? await db
+        .select({ id: mediaAssets.id, storageKey: mediaAssets.storageKey })
+        .from(mediaAssets)
+        .where(inArray(mediaAssets.id, ids))
+    : []
+  const keyById = new Map(keys.map((k) => [k.id, k.storageKey]))
+  const ttl = Math.max(remainingSeconds ?? 0, 3600) + 600
+  return items.map((i) => {
+    const key = i.mediaId ? keyById.get(i.mediaId) : undefined
+    return { ...i, imageUrl: key ? signedUrl(key, ttl) : null }
+  })
 }
 
 function assertItem(config: WrittenConfig, ref: string) {

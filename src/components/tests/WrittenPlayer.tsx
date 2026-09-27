@@ -6,7 +6,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Locale } from '@/lib/i18n/config'
 import { EvaluationPanel } from './EvaluationPanel'
 
-type Item = { ref: string; questionId: string; prompt: string; promptUr: string | null }
+type Item = {
+  ref: string
+  questionId: string
+  prompt: string
+  promptUr: string | null
+  /** Picture Story: signed link to the picture, when the item has one. */
+  imageUrl?: string | null
+}
 type ResponseView = {
   ref: string
   text: string | null
@@ -208,6 +215,20 @@ export function WrittenPlayer({
     )
   }
 
+  // Picture Story typed: look at each picture, then write with it hidden.
+  if (attempt.timing.viewSeconds && attempt.timing.writeSeconds) {
+    return (
+      <PictureStoryTyped
+        attempt={attempt}
+        answers={answers}
+        setAnswers={setAnswers}
+        save={save}
+        submit={submit}
+        ur={ur}
+      />
+    )
+  }
+
   // Generic typed (SCT / essay / SRT / story / self-description).
   return (
     <div className="flex flex-col gap-6">
@@ -235,6 +256,127 @@ export function WrittenPlayer({
       >
         Submit
       </button>
+    </div>
+  )
+}
+
+/**
+ * The ISSB format: the picture is shown for `viewSeconds`, then taken away and
+ * the candidate has `writeSeconds` to write the story. Each story is saved as
+ * its write phase ends; after the last one the attempt is submitted. A reload
+ * resumes at the first picture with no saved story.
+ */
+function PictureStoryTyped({
+  attempt,
+  answers,
+  setAnswers,
+  save,
+  submit,
+  ur,
+}: {
+  attempt: Attempt
+  answers: Record<string, string>
+  setAnswers: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  save: (
+    id: string,
+    ref: string,
+    text: string,
+    timingMeta?: Record<string, number>,
+  ) => Promise<void>
+  submit: () => Promise<void>
+  ur: boolean
+}) {
+  const viewSeconds = attempt.timing.viewSeconds!
+  const writeSeconds = attempt.timing.writeSeconds!
+  const [idx, setIdx] = useState(() => {
+    const first = attempt.items.findIndex((it) => !attempt.responses[it.ref]?.text)
+    return first < 0 ? 0 : first
+  })
+  const [phase, setPhase] = useState<'view' | 'write'>('view')
+  const [left, setLeft] = useState(viewSeconds)
+  const answersRef = useRef(answers)
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
+
+  const item = attempt.items[idx]
+
+  const finishItem = useCallback(() => {
+    if (!item) return
+    void save(attempt.id, item.ref, answersRef.current[item.ref] ?? '', {
+      viewSeconds,
+      writeSeconds: writeSeconds - left,
+    })
+    if (idx + 1 < attempt.items.length) {
+      setIdx(idx + 1)
+      setPhase('view')
+      setLeft(viewSeconds)
+    } else {
+      void submit()
+    }
+  }, [attempt, item, idx, left, save, submit, viewSeconds, writeSeconds])
+
+  useEffect(() => {
+    if (left <= 0) {
+      if (phase === 'view') {
+        setPhase('write')
+        setLeft(writeSeconds)
+      } else {
+        finishItem()
+      }
+      return
+    }
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [left, phase, finishItem, writeSeconds])
+
+  if (!item) return <p>Done.</p>
+  const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between text-sm text-neutral-500">
+        <span>
+          Picture {idx + 1} / {attempt.items.length} ·{' '}
+          {phase === 'view' ? 'Look carefully' : 'Write your story'}
+        </span>
+        <span className={`font-mono ${left <= 10 ? 'text-red-600' : ''}`}>{clock}</span>
+      </div>
+      {phase === 'view' ? (
+        <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800">
+          {item.imageUrl ? (
+            // Signed, short-lived link to our own storage; next/image adds nothing here.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imageUrl}
+              alt={item.prompt}
+              className="max-h-[60vh] w-auto max-w-full object-contain"
+            />
+          ) : (
+            <p className="text-lg">{ur && item.promptUr ? item.promptUr : item.prompt}</p>
+          )}
+        </div>
+      ) : (
+        <>
+          <p className="text-xs text-neutral-500">
+            What led up to the scene, what is happening now, and how does it end?
+          </p>
+          <textarea
+            autoFocus
+            key={item.ref}
+            rows={12}
+            value={answers[item.ref] ?? ''}
+            onChange={(e) => setAnswers((a) => ({ ...a, [item.ref]: e.target.value }))}
+            className={inputCls}
+          />
+          <button
+            onClick={finishItem}
+            className="w-fit rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white"
+          >
+            {idx + 1 < attempt.items.length ? 'Next picture' : 'Submit'}
+          </button>
+        </>
+      )}
     </div>
   )
 }
@@ -286,7 +428,16 @@ function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur:
 
   return (
     <div className="rounded-lg border border-line p-4">
-      <div className="mb-2 font-medium">{ur && item.promptUr ? item.promptUr : item.prompt}</div>
+      {item.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.imageUrl}
+          alt={item.prompt}
+          className="mb-3 max-h-80 w-auto max-w-full rounded border border-neutral-200 object-contain dark:border-neutral-800"
+        />
+      ) : (
+        <div className="mb-2 font-medium">{ur && item.promptUr ? item.promptUr : item.prompt}</div>
+      )}
       {status === 'idle' && (
         <input type="file" accept="image/jpeg,image/png" onChange={upload} className="text-sm" />
       )}
