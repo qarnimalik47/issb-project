@@ -29,6 +29,12 @@ import { MECHANICAL_QUESTIONS } from '../src/lib/db/seed-data/mechanical-questio
 import { WRITTEN_ITEMS } from '../src/lib/db/seed-data/written-items'
 import { PSYCH_ITEMS } from '../src/lib/db/seed-data/psych-items'
 import {
+  PLANNING_ITEMS,
+  planningStemEn,
+  planningStemUr,
+  planningExplanation,
+} from '../src/lib/db/seed-data/gpe-items'
+import {
   DEFAULT_RUBRIC_CRITERIA,
   DEFAULT_RUBRIC_OUTPUT_SCHEMA,
 } from '../src/lib/db/seed-data/rubrics'
@@ -158,6 +164,44 @@ async function main() {
     if (res[0]) seededW++
   }
   console.warn(`✓ Seeded ${seededW} written item(s).`)
+
+  // Group Planning Exercise: original scenarios. Unlike the other written
+  // items these carry a model plan (stored as the explanation, for reviewers
+  // and the rubric) and a difficulty, so they get their own loop.
+  const gpeTypeId = typeByCode.get('gpe')
+  let seededP = 0
+  if (gpeTypeId) {
+    for (const item of PLANNING_ITEMS) {
+      const stemEn = planningStemEn(item)
+      const stemUr = planningStemUr(item)
+      const explanationEn = planningExplanation(item)
+      const res = await db
+        .insert(questions)
+        .values({
+          testTypeId: gpeTypeId,
+          stemEn,
+          stemUr,
+          explanationEn,
+          topic: 'gpe',
+          difficulty: item.difficulty,
+          contentHash: questionContentHash(stemEn, []),
+          status: 'published',
+        })
+        .onConflictDoUpdate({
+          target: questions.contentHash,
+          set: {
+            stemUr,
+            explanationEn,
+            difficulty: item.difficulty,
+            status: 'published',
+            updatedAt: new Date(),
+          },
+        })
+        .returning({ id: questions.id })
+      if (res[0]) seededP++
+    }
+  }
+  console.warn(`✓ Seeded ${seededP} planning exercise(s).`)
 
   // Default rubric (v1) for each rubric-scored test type.
   const rubricTypes = (await db.select().from(testTypes)).filter((t) => t.scoringType === 'rubric')

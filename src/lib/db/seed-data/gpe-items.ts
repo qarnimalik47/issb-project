@@ -1,0 +1,1219 @@
+/**
+ * ORIGINAL Group Planning Exercise (GPE) scenarios — the "military planning"
+ * task, written from scratch for this platform.
+ *
+ * The format is the standard one: a narrative sets a group down in a place with
+ * named resources and a clock running, several problems land at once, and the
+ * candidate writes an individual plan before the group argues its way to a
+ * shared one. What is NOT standard is the content — every scenario, distance
+ * and model plan below is our own wording, on the same footing as
+ * `psych-items.ts` and `verbal-questions.ts`: nothing is copied from ISSB
+ * materials, prep books or past papers.
+ *
+ * That matters here more than usual. `storage/content-import/_figures/gpe/`
+ * holds 37 scanned pages of other people's planning tasks, and they are marked
+ * not publishable for exactly this reason. These are the publishable ones.
+ *
+ * Deliberate design rules, so the set trains what the test measures:
+ *
+ *   - Every scenario has three or four problems that arrive together and cannot
+ *     all be solved first. Prioritising under that pressure is the assessed
+ *     skill, not inventing a clever trick.
+ *   - Resources are finite and named in the narrative — a vehicle, a number of
+ *     people, a distance, a deadline — so a plan can be checked against them
+ *     rather than waved at.
+ *   - Nothing needs equipment or authority a group of candidates would not
+ *     have. No plan should depend on a helicopter arriving.
+ *   - The settings are civilian emergencies in Pakistan. "Military planning" is
+ *     what the exercise is called; it is not a combat problem, and writing it
+ *     as one would be both wrong and tasteless.
+ *
+ * `modelPlan` is for the reviewer and the rubric, not the candidate: one
+ * defensible order with reasons, not the only correct answer. It is stored as
+ * the question's explanation.
+ *
+ * Urdu: `narrativeUr` carries the whole narrative, since a candidate may sit in
+ * either language and half a translation is worse than none.
+ */
+
+export type SeedPlanningItem = {
+  /** Stable short code, for ordering and for tracing a row back to this file. */
+  code: string
+  titleEn: string
+  titleUr: string
+  /** What the candidate reads: the situation, the resources and the clock. */
+  narrativeEn: string
+  narrativeUr: string
+  /** The simultaneous problems, named for the reviewer. Not shown as a list. */
+  problems: string[]
+  /** One defensible priority order, with the reason for each step. */
+  modelPlan: string[]
+  difficulty: 'easy' | 'medium' | 'hard'
+}
+
+/**
+ * The instruction is identical in every exercise, so it lives here once rather
+ * than being re-typed — and slowly re-worded — fifty times.
+ */
+const TASK_EN =
+  'Write your own plan. List the problems in the order you would deal with them, say who goes where and with what, and give your reason for that order. Do not add resources that are not mentioned above.'
+
+const TASK_UR =
+  'اپنا منصوبہ تحریر کریں۔ مسائل کو اُسی ترتیب سے لکھیں جس ترتیب سے آپ اُنہیں حل کریں گے، بتائیں کہ کون کہاں اور کن وسائل کے ساتھ جائے گا، اور اپنی ترتیب کی وجہ بیان کریں۔ اوپر بیان کیے گئے وسائل کے علاوہ کوئی نیا وسیلہ فرض نہ کریں۔'
+
+/** The stored question stem: title, narrative, then the standing instruction. */
+export function planningStemEn(item: SeedPlanningItem): string {
+  return [item.titleEn, item.narrativeEn.trim(), TASK_EN].join('\n\n')
+}
+
+export function planningStemUr(item: SeedPlanningItem): string {
+  return [item.titleUr, item.narrativeUr.trim(), TASK_UR].join('\n\n')
+}
+
+/** The model plan, stored as the question's explanation for reviewers. */
+export function planningExplanation(item: SeedPlanningItem): string {
+  const problems = item.problems.map((p, i) => `${i + 1}. ${p}`).join('\n')
+  const plan = item.modelPlan.map((p, i) => `${i + 1}. ${p}`).join('\n')
+  return [
+    `Problems present in the narrative:\n${problems}`,
+    `One defensible plan:\n${plan}`,
+    'This is one workable order, not the only one. A plan that reaches the same ends in a different order, with reasons given, is equally good.',
+  ].join('\n\n')
+}
+
+export const PLANNING_ITEMS: SeedPlanningItem[] = [
+  {
+    code: 'gpe-01',
+    titleEn: 'Flood warning above the village',
+    titleUr: 'گاؤں کے اوپر سیلاب کی اطلاع',
+    narrativeEn: `You are eight college students camping on the sandy bank of a river, two kilometres downstream of the village of Kot Basra. It is 7 p.m. and the light is going. A forest guard rides up and tells you that heavy rain in the hills has burst a small dam eight hours upstream; the water will reach this stretch by about midnight. The village has roughly four hundred people and no telephone line. The only road out of the village runs north and crosses a wooden causeway that the guard says will go under first, probably before 10 p.m. Two of your group are strong swimmers. You have one tractor-trolley borrowed from a farmer, a bicycle, four torches, a first-aid box and your own tents. In the village there are about thirty elderly people, and a primary school with a flat concrete roof stands on high ground at the eastern edge. One of your own group, Adil, went up the hill an hour ago to photograph the sunset and has not come back.`,
+    narrativeUr: `آپ آٹھ کالج کے طالب علم ایک دریا کے ریتلے کنارے پر خیمہ زن ہیں، جو گاؤں کوٹ بصرہ سے دو کلومیٹر نیچے کی جانب ہے۔ شام کے سات بجے ہیں اور روشنی کم ہو رہی ہے۔ محکمہ جنگلات کا ایک گارڈ آ کر بتاتا ہے کہ پہاڑوں میں شدید بارش سے آٹھ گھنٹے کے فاصلے پر ایک چھوٹا بند ٹوٹ گیا ہے؛ پانی تقریباً آدھی رات تک یہاں پہنچ جائے گا۔ گاؤں میں تقریباً چار سو افراد ہیں اور کوئی ٹیلی فون لائن نہیں۔ گاؤں سے نکلنے کا واحد راستہ شمال کی طرف جاتا ہے اور ایک لکڑی کے پُل سے گزرتا ہے جو گارڈ کے مطابق سب سے پہلے ڈوبے گا، غالباً رات دس بجے سے پہلے۔ آپ کے گروپ میں دو اچھے تیراک ہیں۔ آپ کے پاس ایک کسان سے لی ہوئی ٹریکٹر ٹرالی، ایک سائیکل، چار ٹارچیں، ابتدائی طبی امداد کا بکس اور اپنے خیمے ہیں۔ گاؤں میں تقریباً تیس بزرگ افراد ہیں، اور مشرقی کنارے پر بلند زمین پر ایک پرائمری اسکول ہے جس کی چھت پختہ اور ہموار ہے۔ آپ کے اپنے گروپ کا ایک ساتھی عادل ایک گھنٹہ پہلے غروبِ آفتاب کی تصویر لینے پہاڑی پر گیا تھا اور واپس نہیں آیا۔`,
+    problems: [
+      'Four hundred villagers are unwarned and have under five hours.',
+      'The causeway — the only road out — closes about two hours before the water arrives.',
+      'Thirty elderly villagers cannot walk out in the time available.',
+      'Adil is missing on the hill in failing light.',
+    ],
+    modelPlan: [
+      'Send two people on the tractor-trolley to the village at once. A warning is the only thing that turns five hours into five hours of work for four hundred people instead of for eight; every minute it is delayed is lost by everybody.',
+      'Send one person on the bicycle north across the causeway while it is still open, to reach the police post and report the breach. This is the only message that can bring help the group cannot provide itself, and its window shuts first.',
+      'Use the tractor-trolley in repeated runs to move the elderly and the sick to the school roof on the high ground, not north up the road. The high ground is minutes away and the road is hours, and the trolley cannot clear four hundred people in any case.',
+      'Send the two strongest walkers up the hill with two torches to find Adil, on a fixed turnaround time. One life is not worth more than four hundred, but two people can be spared and the search must not become a second emergency.',
+      'Everyone else walks the able-bodied villagers to the school and the eastern high ground, taking the tents and the first-aid box. After midnight the problem stops being the water and becomes cold, wet people with nowhere to sit.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-02',
+    titleEn: 'Bus down on the mountain road',
+    titleUr: 'پہاڑی سڑک پر بس خراب',
+    narrativeEn: `Your group of seven is travelling by coach on a single-track mountain road when the driver stops: a rockfall has put a boulder and a spill of loose stone across the road, and the coach cannot pass. It is 4 p.m. in December and it will be dark by half past five. There are twenty-six passengers, including four children and an elderly woman who is diabetic and tells you her insulin went ahead this morning in a relative's car. The nearest village is six kilometres back downhill; the nearest town with a hospital is thirty-one kilometres ahead. There is no mobile signal here, but the driver says there is signal at the shrine on the ridge, about two kilometres back and three hundred metres up. The coach carries a toolkit, a spare tyre, two blankets and a quarter tank of diesel. Behind you a truck has stopped, and its driver will help but will not leave his cargo.`,
+    narrativeUr: `آپ کا سات افراد کا گروپ ایک تنگ پہاڑی سڑک پر کوچ میں سفر کر رہا ہے کہ ڈرائیور رُک جاتا ہے: تودہ گرنے سے ایک بڑا پتھر اور ڈھیلے پتھروں کا ڈھیر سڑک پر آ گیا ہے اور کوچ گزر نہیں سکتی۔ دسمبر کی شام کے چار بج رہے ہیں اور ساڑھے پانچ بجے اندھیرا ہو جائے گا۔ بس میں چھبیس مسافر ہیں، جن میں چار بچے اور ایک بزرگ خاتون شامل ہیں جو ذیابیطس کی مریضہ ہیں اور بتاتی ہیں کہ اُن کی انسولین آج صبح ایک رشتہ دار کی گاڑی میں آگے چلی گئی ہے۔ قریب ترین گاؤں چھ کلومیٹر واپس نیچے کی جانب ہے؛ ہسپتال والا قریب ترین شہر اکتیس کلومیٹر آگے ہے۔ یہاں موبائل سگنل نہیں، لیکن ڈرائیور کہتا ہے کہ پہاڑی کی چوٹی پر واقع مزار کے پاس سگنل آتا ہے، جو تقریباً دو کلومیٹر پیچھے اور تین سو میٹر بلندی پر ہے۔ کوچ میں اوزاروں کا بکس، ایک اضافی ٹائر، دو کمبل اور چوتھائی ٹینک ڈیزل ہے۔ آپ کے پیچھے ایک ٹرک رُکا ہے جس کا ڈرائیور مدد پر تیار ہے مگر اپنا سامان چھوڑنے کو تیار نہیں۔`,
+    problems: [
+      'A diabetic passenger is separated from her insulin with no clinic within thirty-one kilometres.',
+      'Twenty-six people, four of them children, face a December night at altitude with two blankets.',
+      'The road is blocked and nobody outside knows it.',
+      'Darkness in ninety minutes limits everything that involves walking.',
+    ],
+    modelPlan: [
+      'Send two of the group to the shrine at once, with directions from the driver, to call the police post, the hospital ahead and the relative carrying the insulin. Two kilometres uphill uses most of the remaining daylight, so this cannot be the second decision.',
+      'While they walk, ask the woman when she last took insulin, and keep her warm, still and in company. Most of what can go wrong in the next four hours is made worse by cold and panic, and both are treatable with the blankets and the engine run in bursts on the quarter tank.',
+      'Put the fit men and the truck driver on clearing the loose stone by hand with the toolkit, starting at the downhill edge. Even a single-vehicle gap gets one car through, and it can be done in the light that is left.',
+      'Keep all twenty-six passengers at the coach rather than spread along the road. A cold, dark, single-track road with a rockfall above it is the worst place to stand, and a group in one place is a group that can be counted.',
+      'If the boulder has not moved by dark, stop work and plan the night: children and the elderly in the middle seats with the blankets, engine run ten minutes each hour, one person on watch at each end with a torch for any vehicle that comes.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-03',
+    titleEn: 'Fire in the cloth market',
+    titleUr: 'کپڑا بازار میں آگ',
+    narrativeEn: `You are six friends walking through a covered cloth market at 8 p.m. when smoke begins pushing out of a shuttered shop in the middle row. The market is a warren of narrow lanes with fabric stacked to the ceiling, and perhaps two hundred shoppers and shopkeepers are inside. There are two ways out: the main gate to the south, thirty metres away and already crowding, and a service gate to the north that is usually padlocked. The watchman with the keys is somewhere in the market. A hydrant stands outside the main gate but you have no hose. Above the burning row are two floors of small flats, and you can hear a child crying from one of them. Two shopkeepers are dragging bolts of cloth out into the lane and narrowing it. Your group has three phones with signal, a bottle of water each, and one of you holds a first-aid certificate.`,
+    narrativeUr: `آپ چھ دوست رات آٹھ بجے ایک چھت والے کپڑا بازار میں چل رہے ہیں کہ درمیانی قطار کی ایک بند دکان سے دھواں نکلنے لگتا ہے۔ بازار تنگ گلیوں کا جال ہے جہاں کپڑا چھت تک ڈھیر ہے، اور اندر تقریباً دو سو خریدار اور دکاندار موجود ہیں۔ باہر نکلنے کے دو راستے ہیں: جنوب میں مرکزی دروازہ، جو تیس میٹر دور ہے اور وہاں رش بڑھ رہا ہے، اور شمال میں سروس گیٹ جو عموماً تالا بند رہتا ہے۔ چابیاں رکھنے والا چوکیدار بازار میں کہیں موجود ہے۔ مرکزی دروازے کے باہر ایک ہائیڈرنٹ ہے مگر آپ کے پاس پائپ نہیں۔ جلتی ہوئی قطار کے اوپر چھوٹے فلیٹوں کی دو منزلیں ہیں، اور اُن میں سے ایک سے کسی بچے کے رونے کی آواز آ رہی ہے۔ دو دکاندار اپنی دکانوں سے کپڑے کے تھان کھینچ کر گلی میں ڈال رہے ہیں جس سے گلی مزید تنگ ہو رہی ہے۔ آپ کے گروپ کے پاس سگنل والے تین فون، ایک ایک پانی کی بوتل ہے، اور آپ میں سے ایک کے پاس ابتدائی طبی امداد کا سرٹیفکیٹ ہے۔`,
+    problems: [
+      'Two hundred people are heading for one usable exit through fabric-lined lanes.',
+      'A child is above the fire on the first or second floor.',
+      'The north service gate is locked and the watchman is unlocated.',
+      'Shopkeepers saving stock are narrowing the escape route.',
+    ],
+    modelPlan: [
+      'One person calls Rescue 1122 and the fire brigade from outside the main gate and stays there to meet and direct them. Someone who can say which row and which lane saves the brigade several minutes, and nothing else the group does will put this fire out.',
+      'Two people find the watchman or break the north padlock. Two hundred people through one gate is the thing most likely to kill someone tonight, and a second exit halves the crush.',
+      'Two people work the lanes, moving shoppers towards the exits and stopping the shopkeepers stacking cloth. Say it as an instruction, not a request — a blocked lane is a trapped lane.',
+      'Two people go for the child by the outside stair if there is one, and only while that stair is clear of smoke. Send word to the brigade that there are flats above with a child in one, so that if you must turn back the information has already arrived.',
+      'Set the first-aider up at the hydrant outside the main gate as the collecting point and start counting people out. Smoke casualties walk out and then collapse; a known place to take them is worth more than another pair of hands in the lane.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-04',
+    titleEn: 'Landslide across the railway line',
+    titleUr: 'ریلوے لائن پر لینڈ سلائیڈنگ',
+    narrativeEn: `Your group of nine is walking a hill track at 3 p.m. when a slope gives way below you and slides onto the railway line in the valley, burying about forty metres of track. From where you stand the line curves out of a tunnel eight hundred metres to the east; a board at the track says the afternoon passenger train passes at 4.10 p.m. A gangman's hut beside the line holds a red flag and a hand lamp. A farmer tells you his brother's tea stall at the level crossing, three kilometres west, has a telephone. Two of your group are quick and wearing running shoes; one has a sprained ankle from the morning. The nearest station is eleven kilometres east, beyond the tunnel. It is bright now but cloud is building, and rain would bring more of the slope down. There is no mobile signal in the valley.`,
+    narrativeUr: `آپ کا نو افراد کا گروپ سہ پہر تین بجے ایک پہاڑی پگڈنڈی پر چل رہا ہے کہ آپ کے نیچے ڈھلوان بیٹھ جاتی ہے اور وادی میں ریلوے لائن پر آ گرتی ہے، جس سے تقریباً چالیس میٹر پٹری دب جاتی ہے۔ جہاں آپ کھڑے ہیں وہاں سے لائن مشرق میں آٹھ سو میٹر دور ایک سرنگ سے نکلتی دکھائی دیتی ہے؛ پٹری کے پاس لگے بورڈ کے مطابق سہ پہر کی مسافر ٹرین چار بج کر دس منٹ پر گزرتی ہے۔ لائن کے ساتھ گینگ مین کی جھونپڑی میں سرخ جھنڈی اور ہاتھ والی لالٹین موجود ہے۔ ایک کسان بتاتا ہے کہ تین کلومیٹر مغرب میں پھاٹک پر اُس کے بھائی کے چائے کے کھوکھے میں ٹیلی فون ہے۔ آپ کے گروپ میں دو افراد تیز ہیں اور دوڑنے والے جوتے پہنے ہوئے ہیں؛ ایک کے ٹخنے میں صبح سے موچ ہے۔ قریب ترین اسٹیشن گیارہ کلومیٹر مشرق میں، سرنگ کے پار ہے۔ اس وقت دھوپ ہے مگر بادل بن رہے ہیں، اور بارش سے مزید ڈھلوان گر سکتی ہے۔ وادی میں موبائل سگنل نہیں ہے۔`,
+    problems: [
+      'A passenger train is due in about seventy minutes and will meet the slide at speed out of a blind tunnel.',
+      'Nobody at either station knows the line is blocked.',
+      'More of the slope may come down, on the line and on anyone standing on it.',
+      'One of your own group cannot move quickly.',
+    ],
+    modelPlan: [
+      'Send the two fastest runners east with the red flag and the hand lamp, to a point well beyond the tunnel mouth rather than at the slide. A driver leaving a tunnel needs warning far enough back to stop; a flag at the obstruction is a flag he sees too late.',
+      'Send two more west to the tea stall to telephone the station and railway control. A stopped train is one train; a message to control stops everything on the section and starts the clearance.',
+      'Keep everyone else off the slide and off the line, on the side away from the slope. The second fall is the one that catches the people who came to look at the first.',
+      'Leave the sprained ankle at the gangman hut as a fixed point, to flag down and brief anyone who arrives. Someone who cannot run can still be the person who knows what happened and where everyone went.',
+      'Once the train is stopped and control is informed, note the length of the slide and whether the slope is still moving, and give both facts to the first railway staff who arrive. The clearance plan starts there.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-05',
+    titleEn: 'Canal breach above the fields',
+    titleUr: 'کھیتوں کے اوپر نہر میں شگاف',
+    narrativeEn: `You are five agriculture students staying at a farm when the caretaker wakes you at 5 a.m.: the main canal bank has breached about a kilometre upstream and water is spreading across the fields towards the farm buildings. The breach is roughly three metres wide and widening slowly. Below it lie forty acres of standing wheat, a tube-well room holding the farm's electric motor and switchgear, a shed with eleven tethered buffaloes, and the farmhouse where the caretaker's family of six is asleep. The canal patwari lives at the head regulator four kilometres up the bank and can order the flow cut; there is no phone at the farm. You have a tractor with a front blade, about two hundred empty fertiliser sacks, shovels, and eight farm workers who arrive at six. Sunrise is at a quarter past six. The farm motorcycle has fuel for perhaps ten kilometres.`,
+    narrativeUr: `آپ پانچ زرعی طلبہ ایک فارم پر ٹھہرے ہوئے ہیں کہ نگران صبح پانچ بجے آپ کو جگاتا ہے: تقریباً ایک کلومیٹر اوپر مرکزی نہر کا کنارہ ٹوٹ گیا ہے اور پانی کھیتوں سے ہوتا ہوا فارم کی عمارتوں کی طرف پھیل رہا ہے۔ شگاف تقریباً تین میٹر چوڑا ہے اور آہستہ آہستہ بڑھ رہا ہے۔ اس کے نیچے چالیس ایکڑ کھڑی گندم، ایک ٹیوب ویل کا کمرہ جس میں فارم کی بجلی کی موٹر اور سوئچ گیئر ہے، ایک باڑہ جس میں گیارہ بھینسیں بندھی ہیں، اور فارم ہاؤس ہے جہاں نگران کا چھ افراد پر مشتمل خاندان سو رہا ہے۔ نہر کا پٹواری چار کلومیٹر اوپر ہیڈ ریگولیٹر پر رہتا ہے اور پانی بند کرانے کا حکم دے سکتا ہے؛ فارم پر کوئی فون نہیں۔ آپ کے پاس آگے بلیڈ والا ٹریکٹر، تقریباً دو سو خالی کھاد کی بوریاں، بیلچے، اور آٹھ فارم ورکرز ہیں جو چھ بجے پہنچتے ہیں۔ سورج سوا چھ بجے طلوع ہوگا۔ فارم کی موٹر سائیکل میں تقریباً دس کلومیٹر کا ایندھن ہے۔`,
+    problems: [
+      'The breach will keep widening until the canal flow is cut at the regulator.',
+      'A sleeping family of six is in the path of the water.',
+      'Eleven tethered buffaloes cannot free themselves.',
+      'Live electrical switchgear is about to be flooded.',
+    ],
+    modelPlan: [
+      'Wake the family and move them, with documents and shoes, to the roof or the high yard. They are the only irreplaceable thing on the farm and it costs two minutes.',
+      'Send one student on the motorcycle to the head regulator to get the flow cut. Ten kilometres of fuel covers the four there and back, and until the flow stops, every sack the rest of you fill is being poured into a rising river.',
+      'Throw the main switch at the tube-well room before the water reaches the switchgear. A flooded live board turns a wet field into a place nobody can work in.',
+      'Untie the buffaloes and drive them to the high ground by the road. Tethered animals drown where they stand and loose animals mostly save themselves; it takes two people ten minutes.',
+      'Put everyone else, and the eight workers as they arrive, on the tractor and the sacks — narrowing the breach from both ends rather than damming the middle, and only once the flow is falling. The wheat is last on the list and the first thing everybody will want to start with.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-06',
+    titleEn: 'Missing boy on the sand dunes',
+    titleUr: 'ریت کے ٹیلوں میں گم شدہ لڑکا',
+    narrativeEn: `Your group of ten is at a desert camp near Khairpur. At 5 p.m. a herder arrives: his nine-year-old son took the goats out at noon and has not come back, and the goats have returned without him. The boy was last seen heading north-east towards a belt of high dunes about four kilometres away. Sunset is at 6.20 p.m. and the temperature falls sharply after dark; the boy has no water. The camp has two jeeps, one with a full tank and one with a quarter, six torches, a whistle, four litres of drinking water per person and a vehicle horn. There is mobile signal at the camp and none in the dunes. The nearest police post is twenty-two kilometres by road. A dust haze is cutting visibility, and the herder says his own tracks and the goats' tracks cross the whole area. Four of your group have never walked in dunes.`,
+    narrativeUr: `آپ کا دس افراد کا گروپ خیرپور کے قریب صحرائی کیمپ میں ہے۔ شام پانچ بجے ایک چرواہا آتا ہے: اُس کا نو سالہ بیٹا دوپہر کو بکریاں لے کر نکلا تھا اور واپس نہیں آیا، جبکہ بکریاں اُس کے بغیر لوٹ آئی ہیں۔ لڑکے کو آخری بار شمال مشرق میں تقریباً چار کلومیٹر دور بلند ٹیلوں کی پٹی کی طرف جاتے دیکھا گیا تھا۔ غروبِ آفتاب چھ بج کر بیس منٹ پر ہے اور اندھیرے کے بعد درجہ حرارت تیزی سے گرتا ہے؛ لڑکے کے پاس پانی نہیں۔ کیمپ میں دو جیپیں ہیں، ایک کا ٹینک بھرا اور ایک کا چوتھائی، چھ ٹارچیں، ایک سیٹی، فی کس چار لیٹر پینے کا پانی اور گاڑی کا ہارن موجود ہے۔ کیمپ میں موبائل سگنل ہے اور ٹیلوں میں نہیں۔ قریب ترین پولیس چوکی سڑک کے راستے بائیس کلومیٹر دور ہے۔ گرد و غبار سے حد نگاہ کم ہو رہی ہے، اور چرواہا کہتا ہے کہ اُس کے اپنے اور بکریوں کے نشانات پورے علاقے میں پھیلے ہیں۔ آپ کے گروپ کے چار افراد نے کبھی ریت کے ٹیلوں میں سفر نہیں کیا۔`,
+    problems: [
+      'A child is lost without water and the temperature will drop after dark.',
+      'There is about eighty minutes of usable light.',
+      'A search party in dunes without signal can itself become lost.',
+      'Nobody outside the camp knows a child is missing.',
+    ],
+    modelPlan: [
+      "Phone the police post and the boy's village from the camp before anyone leaves. It costs three minutes and it is the only call that can be made at all — once the search moves into the dunes there is no signal to make it from.",
+      'Send the full-tank jeep with three experienced walkers along the firm ground at the edge of the dune belt, sounding the horn every few minutes. Sound carries further than a torch in haze, and a child who hears a horn walks towards it and saves you the search.',
+      'Keep the four who have never walked in dunes at the camp, not in the search. An inexperienced walker in dunes after dark becomes the second person you are looking for.',
+      'Set a hard turnaround time twenty minutes before last light for anyone on foot, and pair every walker. Nobody searches alone and nobody searches past the time, whatever they think they have seen.',
+      'Keep the quarter-tank jeep at the camp with its headlights facing the dunes as a fixed mark, and hold the water and spare torches there. A visible camp is both a beacon for the boy and the place a rescue party will come to.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-07',
+    titleEn: 'Power failure in the district hospital',
+    titleUr: 'ضلعی ہسپتال میں بجلی کی بندش',
+    narrativeEn: `You are eight volunteers helping at a district hospital during a heatwave. At 11 p.m. the grid fails and the standby generator starts, then stops after two minutes: the day staff did not refill it and there is about ten minutes of diesel in the tank. On generator supply the hospital runs its operating theatre, a neonatal unit with four babies in incubators, the oxygen concentrators on the male ward where two patients depend on them, and the lifts. A surgeon is halfway through an appendix operation. The hospital store has no diesel; the nearest pump is three kilometres away and open, and the hospital ambulance has a driver and a full tank. The store holds fifteen battery emergency lights and a dozen torches, and every ward has a hand-operated resuscitation bag. The grid has been out for six hours at a stretch before. Mobile signal is good.`,
+    narrativeUr: `آپ آٹھ رضاکار شدید گرمی کے دوران ایک ضلعی ہسپتال میں مدد کر رہے ہیں۔ رات گیارہ بجے گرڈ کی بجلی چلی جاتی ہے اور اسٹینڈ بائی جنریٹر چالو ہوتا ہے، پھر دو منٹ بعد بند ہو جاتا ہے: دن کے عملے نے اُس میں ایندھن نہیں ڈالا اور ٹینک میں تقریباً دس منٹ کا ڈیزل ہے۔ جنریٹر پر ہسپتال کا آپریشن تھیٹر، نوزائیدہ بچوں کا یونٹ جہاں چار بچے انکیوبیٹر میں ہیں، مردانہ وارڈ کے آکسیجن کنسنٹریٹر جن پر دو مریض انحصار کرتے ہیں، اور لفٹیں چلتی ہیں۔ ایک سرجن اپینڈکس کا آپریشن آدھا کر چکا ہے۔ ہسپتال کے اسٹور میں ڈیزل نہیں؛ قریب ترین پمپ تین کلومیٹر دور اور کھلا ہے، اور ہسپتال کی ایمبولینس ڈرائیور سمیت موجود ہے اور اُس کا ٹینک بھرا ہے۔ اسٹور میں پندرہ بیٹری والی ایمرجنسی لائٹس اور ایک درجن ٹارچیں ہیں، اور ہر وارڈ میں ہاتھ سے چلنے والا ریسسیٹیشن بیگ موجود ہے۔ اس سے پہلے گرڈ کی بجلی مسلسل چھ گھنٹے تک بند رہ چکی ہے۔ موبائل سگنل ٹھیک ہے۔`,
+    problems: [
+      'Ten minutes of diesel stands between four incubators and no power.',
+      'A surgeon is operating and can neither stop nor work in the dark.',
+      'Two ward patients depend on mains-powered oxygen concentrators.',
+      'The lifts may have people in them and will not be usable.',
+    ],
+    modelPlan: [
+      'Send the ambulance to the pump immediately with money and every container in the store. Three kilometres each way is fifteen minutes if it leaves now and an hour if it leaves after a discussion, and nothing else here buys time the way fuel does.',
+      'Restart the generator and shed load first: theatre and neonatal only, lifts and everything else off. Ten minutes of diesel spread across the whole hospital runs out before the operation does; spread across two rooms it may reach the returning ambulance.',
+      'Put two volunteers with resuscitation bags beside the two oxygen-dependent patients, with a nurse, before their ward loses supply. A hand bag is a poor substitute for a concentrator, but it is a substitute, and it has to be in place before it is needed rather than after.',
+      'Send two volunteers with torches to check every lift and get anyone out. It is quick, it is easily forgotten, and a person trapped in a lift during a heatwave power cut is a real emergency by morning.',
+      'Set the battery lights up in theatre and the neonatal unit, and phone the hospital electrician and the district office to report the failure. That call is what gets a fuel bowser or a second generator moving for the six-hour outage nobody can rule out.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-08',
+    titleEn: 'Boat capsizes at the lake',
+    titleUr: 'جھیل میں کشتی اُلٹ گئی',
+    narrativeEn: `Your group of seven is on the shore of a lake at 4 p.m. when a wooden boat about eighty metres out overturns. It was carrying nine people on a picnic; you can see five heads in the water and three clinging to the upturned hull. Two of your group are strong swimmers and one of those holds a lifesaving certificate. On the shore there is a second boat with one oar missing, four empty plastic jerry cans with caps, a coil of rope about twenty metres long, and a tea stall whose owner says an ambulance takes forty minutes to reach the lake. The water is cold and the wind is pushing the wreck away from shore. A crowd of about thirty has gathered, several shouting and one man taking off his shoes to go in. Two of your group cannot swim at all. There is mobile signal.`,
+    narrativeUr: `آپ کا سات افراد کا گروپ سہ پہر چار بجے جھیل کے کنارے موجود ہے کہ تقریباً اَسی میٹر دور ایک لکڑی کی کشتی اُلٹ جاتی ہے۔ اُس میں نو افراد پکنک پر سوار تھے؛ آپ کو پانی میں پانچ سر دکھائی دے رہے ہیں اور تین افراد اُلٹی ہوئی کشتی سے چمٹے ہوئے ہیں۔ آپ کے گروپ میں دو اچھے تیراک ہیں اور اُن میں سے ایک کے پاس لائف سیونگ سرٹیفکیٹ ہے۔ کنارے پر ایک دوسری کشتی ہے جس کا ایک چپو غائب ہے، ڈھکنوں سمیت چار خالی پلاسٹک کین، تقریباً بیس میٹر لمبی رسی، اور ایک چائے کا کھوکھا ہے جس کا مالک کہتا ہے کہ ایمبولینس کو یہاں پہنچنے میں چالیس منٹ لگتے ہیں۔ پانی ٹھنڈا ہے اور ہوا ملبے کو کنارے سے دور دھکیل رہی ہے۔ تقریباً تیس افراد کا ہجوم جمع ہو چکا ہے، کئی چیخ رہے ہیں اور ایک آدمی جوتے اتار کر پانی میں جانے لگا ہے۔ آپ کے گروپ کے دو افراد بالکل تیرنا نہیں جانتے۔ موبائل سگنل موجود ہے۔`,
+    problems: [
+      'Five people are in cold water eighty metres out and the wreck is drifting further away.',
+      'The only boat is unusable with one oar.',
+      'Untrained rescuers from the crowd are about to become casualties.',
+      'An ambulance is forty minutes away from nine possible patients.',
+    ],
+    modelPlan: [
+      'Put the two swimmers in the water with two capped jerry cans each and nothing else. A floating object turns a rescue into a tow; a swimmer who reaches a panicking adult empty-handed is pulled under, which is how lake rescues produce a second body.',
+      'Call Rescue 1122 and the police in the same minute, from the shore, and say nine people and cold water. The forty minutes starts when the call is made, not when the last person is pulled out.',
+      'Stop the man taking his shoes off, and every other volunteer, and give them shore jobs instead: the rope, blankets, clearing a space, keeping the road open. A crowd told to stand back argues; a crowd given tasks complies.',
+      'Get the second boat out with two people paddling by hand and the rope aboard, aimed at the upturned hull. Three people are already holding the hull and are the easiest to bring in — take the ones you can reach before the ones you can see.',
+      'Make the tea stall the casualty point and start getting the recovered out of wet clothes and warm. Cold water kills people twenty minutes after they are pulled out as well as during; drying and warming them is treatment, not tidying up.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-09',
+    titleEn: 'Snow closes the pass',
+    titleUr: 'برف باری سے درہ بند',
+    narrativeEn: `Your group of six is at a rest house near a high pass when heavy snow closes the road on both sides. It is 9 a.m., about forty centimetres have fallen overnight and more is falling. Also at the rest house are a family of five including a two-year-old, and a driver whose van is buried to the axles. The rest house has firewood for about two days, food for perhaps three if shared, one wood stove, and a dead landline. There is no mobile signal, but the caretaker says signal can be found at a shepherd's hut on the spur, an hour's walk up in good conditions. The nearest village is nine kilometres down the road on your side. One of the family, a man of about sixty, has had chest pain for an hour and his own tablets have not helped. Clearance of this road usually takes two to three days.`,
+    narrativeUr: `آپ کا چھ افراد کا گروپ ایک بلند درے کے قریب ریسٹ ہاؤس میں ہے کہ شدید برف باری سے سڑک دونوں طرف سے بند ہو جاتی ہے۔ صبح کے نو بجے ہیں، رات بھر میں تقریباً چالیس سینٹی میٹر برف پڑ چکی ہے اور مزید پڑ رہی ہے۔ ریسٹ ہاؤس میں پانچ افراد کا ایک خاندان بھی ہے جس میں دو سال کا بچہ شامل ہے، اور ایک ڈرائیور جس کی وین پہیوں تک برف میں دھنسی ہے۔ ریسٹ ہاؤس میں تقریباً دو دن کی لکڑی، مل بانٹ کر کھانے پر شاید تین دن کا راشن، ایک لکڑی کا چولہا، اور ایک بند لینڈ لائن ہے۔ موبائل سگنل نہیں، لیکن نگران کہتا ہے کہ پہاڑی کی دھار پر ایک چرواہے کی جھونپڑی کے پاس سگنل مل جاتا ہے، جو اچھے موسم میں ایک گھنٹے کی چڑھائی پر ہے۔ قریب ترین گاؤں آپ کی طرف نو کلومیٹر نیچے ہے۔ خاندان کے ایک ساٹھ سالہ فرد کو ایک گھنٹے سے سینے میں درد ہے اور اُس کی اپنی گولیوں سے افاقہ نہیں ہوا۔ اس سڑک سے برف ہٹانے میں عموماً دو سے تین دن لگتے ہیں۔`,
+    problems: [
+      'A man with untreated chest pain is two to three days from a hospital.',
+      'Firewood runs out a day before the road is likely to open.',
+      'A two-year-old is the least able to tolerate a cold building.',
+      'Nobody outside knows anyone is here.',
+    ],
+    modelPlan: [
+      "Send two of the group to the shepherd hut for signal, carrying the sick man's age, symptoms and the number of people here. That call is the only thing that can bring a doctor, a plough or a helicopter, and the weather is closing, so it goes first.",
+      'Keep the man with chest pain still, warm and sitting up by the stove, and do not let him walk anywhere. Nine kilometres downhill in snow is not an evacuation for him; it is how he dies on the road.',
+      'Move everyone into the one room with the stove and shut the rest of the building. Heating one room doubles the two days of firewood, and a two-year-old in a shared warm room is a different problem from one in a cold room.',
+      'Inventory and ration the food on day one, not day two, and melt snow for water. Three days of food shared without a plan is two days of food and a day of argument.',
+      'Dig out to the van and strip it of anything useful — mats, first-aid kit, seat covers. Do not try to drive it. It is now a store, not a vehicle.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-10',
+    titleEn: 'Gas smell in the apartment block',
+    titleUr: 'رہائشی فلیٹوں میں گیس کی بو',
+    narrativeEn: `You are five students on the second floor of a four-storey apartment block. At 6 a.m. you wake to a strong smell of gas in the stairwell. It is heaviest outside the ground-floor flat of an elderly couple who are both hard of hearing; their door is locked and there is no answer. The block has sixteen flats and perhaps sixty residents, most still asleep. The gas meters and the main valve are in a basement cupboard, which is dark and has its light switch at the door. There is one staircase and no fire alarm. Outside, the street is narrow with cars parked both sides. Two residents are already on their balconies smoking. The gas emergency number and Rescue 1122 both answer, and the fire station is about ten minutes away. One of your group has asthma. A watchman with a master key sleeps in a cabin at the gate.`,
+    narrativeUr: `آپ پانچ طالب علم چار منزلہ فلیٹوں کی عمارت کی دوسری منزل پر ہیں۔ صبح چھ بجے آپ کی آنکھ زینے میں گیس کی تیز بو سے کھلتی ہے۔ بو سب سے زیادہ گراؤنڈ فلور کے اُس فلیٹ کے باہر ہے جہاں ایک بزرگ جوڑا رہتا ہے اور دونوں کو اونچا سنائی دیتا ہے؛ اُن کا دروازہ بند ہے اور کوئی جواب نہیں۔ عمارت میں سولہ فلیٹ اور تقریباً ساٹھ رہائشی ہیں، جن میں سے اکثر ابھی سو رہے ہیں۔ گیس کے میٹر اور مین والو تہہ خانے کی ایک الماری میں ہیں، جو اندھیرا ہے اور جس کا بجلی کا سوئچ دروازے پر ہے۔ عمارت میں ایک ہی زینہ ہے اور فائر الارم نہیں۔ باہر گلی تنگ ہے اور دونوں طرف گاڑیاں کھڑی ہیں۔ دو رہائشی اپنی بالکونیوں میں سگریٹ پی رہے ہیں۔ گیس ایمرجنسی نمبر اور ریسکیو 1122 دونوں جواب دے رہے ہیں، اور فائر اسٹیشن تقریباً دس منٹ کے فاصلے پر ہے۔ آپ کے گروپ میں ایک کو دمہ ہے۔ گیٹ کے کیبن میں ایک چوکیدار ماسٹر چابی کے ساتھ سوتا ہے۔`,
+    problems: [
+      'A gas-filled stairwell is the only way sixty sleeping people can get out.',
+      'An elderly couple who cannot hear knocking are closest to the leak.',
+      'Two residents are smoking on balconies above a gas leak.',
+      'The parked-in street will delay the fire engine.',
+    ],
+    modelPlan: [
+      'Get the cigarettes out before anything else. It takes ten seconds, it is the one thing that turns a leak into an explosion, and every other step assumes the building has not gone up.',
+      'Call the gas emergency number and Rescue 1122 from outside the building, and send one person to the gate to keep the street clear and meet them. Do not use doorbells, the lift or the basement light switch — a spark is a spark whichever switch makes it.',
+      "Wake the watchman, get the master key and open the elderly couple's flat. They are nearest the leak, cannot hear a warning, and cannot be assumed to be out.",
+      'Split the rest of the group to knock every door from the top floor down, by hand on the door, walking people well clear of the building. Top down, because those with furthest to walk need the longest head start and gas collects up the stairwell.',
+      'Leave the basement valve to the gas company unless someone who knows that cupboard can reach it without a light. An untrained person feeling around a dark basement full of gas is not closing the leak; they are standing in it.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-11',
+    titleEn: 'Exam morning, road blocked',
+    titleUr: 'امتحان کی صبح، سڑک بند',
+    narrativeEn: `You are one of twelve candidates travelling together to a written entrance test that starts at 9 a.m. sharp in a city forty kilometres away. At 7.15 a.m. your hired van is stopped by a sit-in blocking the highway at a bridge; the police say it may clear in an hour or may not. A side road exists but adds twenty-six kilometres and is unmetalled in parts; the driver says about an hour and ten minutes, but the van is low on fuel and the pump is four kilometres back. Two candidates have roll-number slips but no identity cards, and the rules require both. One candidate has been vomiting since dawn. There is mobile signal and the centre's landline number is printed on the slip. A local man offers to take four people by tractor on the back road: slower, but certain.`,
+    narrativeUr: `آپ بارہ امیدواروں کے ساتھ ایک تحریری داخلہ ٹیسٹ کے لیے سفر کر رہے ہیں جو چالیس کلومیٹر دور شہر میں ٹھیک نو بجے شروع ہوگا۔ صبح سوا سات بجے آپ کی کرائے کی وین کو ایک پُل پر دھرنے نے روک دیا ہے؛ پولیس کہتی ہے کہ راستہ ایک گھنٹے میں کھل سکتا ہے یا نہیں بھی۔ ایک متبادل سڑک موجود ہے مگر وہ چھبیس کلومیٹر اضافی ہے اور جگہ جگہ کچی ہے؛ ڈرائیور کہتا ہے تقریباً ایک گھنٹہ دس منٹ، مگر وین میں ایندھن کم ہے اور پمپ چار کلومیٹر پیچھے ہے۔ دو امیدواروں کے پاس رول نمبر سلپ تو ہے مگر شناختی کارڈ نہیں، اور قواعد کے مطابق دونوں ضروری ہیں۔ ایک امیدوار کو صبح سے قے آ رہی ہے۔ موبائل سگنل موجود ہے اور سینٹر کا لینڈ لائن نمبر سلپ پر درج ہے۔ ایک مقامی شخص چار افراد کو ٹریکٹر پر پچھلی سڑک سے لے جانے کی پیشکش کرتا ہے: سست، مگر یقینی۔`,
+    problems: [
+      'Twelve candidates have a hard deadline in one hour and forty-five minutes.',
+      'The van cannot take the long route without a fuel stop in the wrong direction.',
+      'Two candidates may be refused entry for want of identity cards.',
+      'One candidate is ill and may not be able to sit the paper at all.',
+    ],
+    modelPlan: [
+      'Phone the centre now and report twelve candidates held by a road block, with the roll numbers. Centres record such calls, and it is the only thing that can help after 9 a.m.; made at 9.05 the same call is an excuse.',
+      'Send the van back for fuel immediately and commit to the side road. An hour and ten minutes plus ten for fuel still arrives before nine; waiting to see whether the sit-in clears spends the margin and buys nothing.',
+      'Put the two without identity cards on the phone to their families for photographs of the cards, and have them ask the centre on the same call what it will accept. Two candidates solving a paperwork problem do not need to be in the van while they do it.',
+      'Send the ill candidate by tractor with one companion rather than in a crowded van on a rough road. Slower but certain is the right trade for the person least able to stand the fast option, and it frees space in the van.',
+      "Name one person to hold everyone's roll numbers and keep the centre informed, and do not let the group split beyond the two parties already decided. Most candidates lost on a morning like this are lost to confusion, not to the road.",
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-12',
+    titleEn: 'Tremor in the hill town',
+    titleUr: 'پہاڑی قصبے میں زلزلہ',
+    narrativeEn: `Your group of nine is in a small hill town when an earthquake strikes at 2 p.m. Two buildings on the bazaar street have partly collapsed: a two-storey shop with voices calling from under the front section, and a girls' primary school whose veranda has come down — the children are out on the playground but the head teacher reports two missing. The road out of town has a crack across it and a wall leaning over it. There is no mobile signal; the town's one landline is in the post office, which is standing. The dispensary has one medical officer, some dressings and no blood. Water is leaking from a broken main into the bazaar. About sixty people are milling in the street, many pulling at the shop rubble by hand. Aftershocks continue. Your group has three first-aid trained members, two vehicles, rope and torches.`,
+    narrativeUr: `آپ کا نو افراد کا گروپ ایک چھوٹے پہاڑی قصبے میں ہے کہ دوپہر دو بجے زلزلہ آتا ہے۔ بازار کی سڑک پر دو عمارتیں جزوی طور پر گر چکی ہیں: ایک دو منزلہ دکان جس کے اگلے حصے کے نیچے سے آوازیں آ رہی ہیں، اور ایک گرلز پرائمری اسکول جس کا برآمدہ گر گیا ہے — بچیاں میدان میں موجود ہیں مگر ہیڈ ٹیچر کے مطابق دو لاپتہ ہیں۔ قصبے سے نکلنے والی سڑک پر دراڑ پڑ گئی ہے اور ایک دیوار اُس پر جھکی ہوئی ہے۔ موبائل سگنل نہیں؛ قصبے کی واحد لینڈ لائن ڈاکخانے میں ہے جو محفوظ کھڑا ہے۔ ڈسپنسری میں ایک میڈیکل افسر، کچھ پٹیاں اور خون بالکل نہیں۔ ٹوٹی ہوئی مین لائن سے پانی بازار میں بہہ رہا ہے۔ تقریباً ساٹھ افراد سڑک پر جمع ہیں اور کئی ہاتھوں سے دکان کا ملبہ کھینچ رہے ہیں۔ آفٹر شاکس جاری ہیں۔ آپ کے گروپ میں تین افراد ابتدائی طبی امداد کی تربیت رکھتے ہیں، دو گاڑیاں، رسی اور ٹارچیں موجود ہیں۔`,
+    problems: [
+      'Live casualties are audible under the shop rubble.',
+      'Two children are unaccounted for at the school.',
+      'The town is cut off and nobody outside knows.',
+      'Sixty untrained people are digging under an unstable wall during aftershocks.',
+    ],
+    modelPlan: [
+      'Send two people to the post office to telephone the district administration, Rescue 1122 and the nearest police post: town name, two collapses, casualties trapped, road cracked. Everything a town this size needs comes from outside, and the message has to leave before anything else improves.',
+      'Put your three first-aiders at the school first. Two missing children in a partly collapsed veranda is a search of a small, known area with a good chance of a live result, and the rest of the school can be counted and moved to open ground meanwhile.',
+      "Organise the crowd at the shop rather than dispersing it: a line to pass rubble back, nobody under the leaning wall, one person watching that wall. Sixty willing people are the town's largest resource; the only question is whether they are working or milling.",
+      'Get the water main shut off or dug away from the rubble. Water running into a collapse turns dust into mud and mud into weight, and it is a five-minute job that saves hours.',
+      'Park one vehicle at the cracked road as a marked barrier and keep the other for casualty runs once the road is judged passable. A vehicle that drops into the crack blocks the only route out for everyone who comes later.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-13',
+    titleEn: 'Truck overturned at the crossing',
+    titleUr: 'پھاٹک پر ٹرک اُلٹ گیا',
+    narrativeEn: `You are six people at a roadside hotel at 10 p.m. when a loaded truck overturns on the level crossing a hundred metres away. Its cargo of steel pipe has spilled across both the road and the rail track. The driver is trapped in the cab, conscious and shouting; his cleaner has got out with a bleeding arm. Diesel is leaking from a ruptured tank towards the road drain. The crossing gates are unmanned at night, and a goods train uses this line at about 11 p.m. Traffic is building on both sides and drivers are getting out with phone torches to look. The hotel has a fire extinguisher, a first-aid box, a tractor, and a generator running outside. There is mobile signal. The nearest hospital is eighteen kilometres away; the nearest railway cabin is two kilometres down the track and manned.`,
+    narrativeUr: `آپ چھ افراد رات دس بجے سڑک کنارے ایک ہوٹل پر ہیں کہ سو میٹر دور ریلوے پھاٹک پر ایک لدا ہوا ٹرک اُلٹ جاتا ہے۔ اُس کا لوہے کے پائپوں کا مال سڑک اور ریلوے ٹریک دونوں پر بکھر گیا ہے۔ ڈرائیور کیبن میں پھنسا ہوا ہے، ہوش میں ہے اور چیخ رہا ہے؛ اُس کا کلینر باہر نکل آیا ہے اور اُس کے بازو سے خون بہہ رہا ہے۔ پھٹے ہوئے ٹینک سے ڈیزل رِس کر سڑک کی نالی کی طرف بہہ رہا ہے۔ رات کو پھاٹک پر عملہ نہیں ہوتا، اور اس لائن سے تقریباً گیارہ بجے ایک مال گاڑی گزرتی ہے۔ دونوں طرف ٹریفک جمع ہو رہی ہے اور ڈرائیور موبائل کی روشنی لیے دیکھنے کے لیے اتر رہے ہیں۔ ہوٹل میں آگ بجھانے کا آلہ، ابتدائی طبی امداد کا بکس، ایک ٹریکٹر، اور باہر چلتا ہوا جنریٹر ہے۔ موبائل سگنل موجود ہے۔ قریب ترین ہسپتال اٹھارہ کلومیٹر دور ہے؛ قریب ترین ریلوے کیبن ٹریک کے ساتھ دو کلومیٹر دور ہے جہاں عملہ موجود ہے۔`,
+    problems: [
+      'A goods train is due in about an hour on a track covered in steel pipe.',
+      'The driver is trapped in the cab above a leaking diesel tank.',
+      'Spilled diesel is spreading towards a running generator and a crowd with naked lights.',
+      'The cleaner is bleeding and the hospital is eighteen kilometres away.',
+    ],
+    modelPlan: [
+      'Phone the railway cabin and Rescue 1122 in the first minute, and if the cabin does not answer send two people running down the track to it. A goods train into spilled steel pipe is the one outcome tonight that would kill people who are not yet involved.',
+      'Shut the hotel generator down and push the crowd back from the diesel with torches off. Diesel does not flash like petrol, but a crowd standing in a spreading pool with open flames is a bet with no upside, and the driver is directly above it.',
+      'Stop the bleeding on the cleaner with pressure from the first-aid box and sit him down away from the spill. It is quick, it needs one person, and an arm bleed left for an hour becomes the second serious casualty.',
+      'Do not pull the trapped driver out with the tractor. Steady the cab, talk to him, keep him conscious and wait for the cutting gear the rescue service brings. A crushed leg dragged free is a worse injury than a crushed leg supported for twenty minutes.',
+      'Put two people on the road a hundred metres back on each side to stop and turn traffic. The second accident at a scene like this is a car arriving at speed into a stationary queue, and two people with torches prevent it.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-14',
+    titleEn: 'Heatstroke at the open-air event',
+    titleUr: 'کھلے میدان کی تقریب میں لُو',
+    narrativeEn: `You are eight volunteers stewarding an open-air sports event on a cricket ground. It is 1 p.m. in June, over forty-two degrees, and about nine hundred spectators are on open concrete terraces with no shade. Within ten minutes three people have collapsed in different parts of the ground and a fourth is being helped down the steps. The single medical tent has one doctor and two beds. The water stall has run out of bottles; there is a working tap and tank at the pavilion two hundred metres away, and a pile of empty crates. The ground's one ambulance has just left with an earlier casualty and returns in twenty-five minutes. The announcer has a working public-address system. The gates are narrow and the car park is full. The match has thirty overs left and the organisers do not want to stop it.`,
+    narrativeUr: `آپ آٹھ رضاکار ایک کرکٹ گراؤنڈ میں کھلے آسمان تلے کھیلوں کی تقریب میں انتظام سنبھالے ہوئے ہیں۔ جون کی دوپہر کے ایک بجے ہیں، درجہ حرارت بیالیس ڈگری سے اوپر ہے، اور تقریباً نو سو تماشائی بغیر سائے کے کھلے کنکریٹ کے زینوں پر بیٹھے ہیں۔ دس منٹ کے اندر تین افراد گراؤنڈ کے مختلف حصوں میں گر چکے ہیں اور ایک چوتھے کو سہارا دے کر سیڑھیوں سے اتارا جا رہا ہے۔ واحد طبی خیمے میں ایک ڈاکٹر اور دو بستر ہیں۔ پانی کے اسٹال پر بوتلیں ختم ہو چکی ہیں؛ دو سو میٹر دور پویلین میں چلتا ہوا نل اور ٹینک ہے، اور خالی کریٹوں کا ڈھیر موجود ہے۔ گراؤنڈ کی واحد ایمبولینس ابھی ایک مریض لے کر نکلی ہے اور پچیس منٹ میں واپس آئے گی۔ اعلان کرنے والے کے پاس چلتا ہوا اسپیکر سسٹم ہے۔ گیٹ تنگ ہیں اور پارکنگ بھری ہوئی ہے۔ میچ کے تیس اوور باقی ہیں اور منتظمین اُسے روکنا نہیں چاہتے۔`,
+    problems: [
+      'Four heat casualties with one doctor and two beds.',
+      'Nine hundred people are in direct sun with no drinking water.',
+      'The only ambulance is twenty-five minutes away.',
+      'The organisers want the match to continue, which keeps the crowd in the sun.',
+    ],
+    modelPlan: [
+      'Get the announcer to tell the crowd, now and repeatedly, to move under the stand, wet their heads and drink. Nine hundred people is beyond anything eight volunteers can treat one at a time; the public-address system is the only tool here that reaches everybody at once.',
+      'Send two volunteers to the pavilion tap with the crates to start a water chain to the terraces. Cool water in bulk is the actual treatment for what is happening to this crowd, and it is two hundred metres away.',
+      'Move the four casualties into shade rather than into a queue for the tent: wet cloth, loosened clothing, feet raised. Cooling starts where the patient is lying; carrying them across hot concrete to wait for a bed makes them worse on the way.',
+      'Tell the organisers plainly that the match should be paused, and why in one sentence: the crowd will sit in the sun as long as there is cricket to watch. If they refuse, ask for drinks breaks announced every fifteen minutes as the fallback.',
+      'Send one volunteer to clear a lane through the car park and hold the nearest gate for the returning ambulance, and call for a second ambulance now rather than when the fifth person collapses.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-15',
+    titleEn: 'Well collapse on the farm',
+    titleUr: 'فارم پر کنویں کا انہدام',
+    narrativeEn: `Your group of seven is visiting a farm at 11 a.m. when the brick lining of an old open well partly collapses while a labourer, Sharif, is working eight metres down. He is conscious and calls up that he is trapped from the waist down and that dust is still falling. The well mouth is a metre and a half across, with loose brick around the rim. The farm has a rope ladder, forty metres of rope, a winch on a tube-well frame, a tractor, buckets, and a length of hosepipe. Eleven labourers are on the farm, all wanting to go down. The nearest fire and rescue station is twenty-six kilometres away and says forty minutes. It is hot, and there is a diesel pump running near the well. Mobile signal is weak but a call connects if you stand by the road.`,
+    narrativeUr: `آپ کا سات افراد کا گروپ صبح گیارہ بجے ایک فارم پر ہے کہ ایک پرانے کھلے کنویں کی اینٹوں کی تہہ جزوی طور پر گر جاتی ہے جب ایک مزدور شریف آٹھ میٹر نیچے کام کر رہا ہوتا ہے۔ وہ ہوش میں ہے اور اوپر آواز دیتا ہے کہ وہ کمر تک دبا ہوا ہے اور مٹی ابھی بھی گر رہی ہے۔ کنویں کا منہ ڈیڑھ میٹر چوڑا ہے اور کنارے پر ڈھیلی اینٹیں ہیں۔ فارم پر رسی کی سیڑھی، چالیس میٹر رسی، ٹیوب ویل کے فریم پر ایک ونچ، ایک ٹریکٹر، بالٹیاں، اور ایک ہوز پائپ موجود ہے۔ فارم پر گیارہ مزدور ہیں اور سب نیچے جانا چاہتے ہیں۔ قریب ترین فائر اینڈ ریسکیو اسٹیشن چھبیس کلومیٹر دور ہے اور چالیس منٹ بتاتا ہے۔ گرمی ہے، اور کنویں کے قریب ایک ڈیزل پمپ چل رہا ہے۔ موبائل سگنل کمزور ہے مگر سڑک کے پاس کھڑے ہو کر کال مل جاتی ہے۔`,
+    problems: [
+      'A man is trapped eight metres down in a well that is still collapsing.',
+      'Eleven willing but untrained men want to climb into it.',
+      'A diesel engine running beside the shaft is filling it with exhaust.',
+      'Professional rescue is forty minutes away.',
+    ],
+    modelPlan: [
+      'Send one person to the road to call Rescue 1122 and say: open well, eight metres, one man trapped from the waist, lining collapsing. Shoring a collapsing shaft is not something this group can do, so the people who can must be moving within the first two minutes.',
+      'Stop the diesel pump. In a confined shaft, exhaust collects at the bottom and the man cannot move away from it — and it costs nothing to switch off.',
+      'Let nobody climb down. The next collapse takes whoever is in the shaft, and eleven men taking turns to try is how one casualty becomes three. Put the labourers on clearing the rim of loose brick from a safe distance instead.',
+      'Keep talking to Sharif continuously, by name, and lower water on a rope. It keeps him still, tells you he is still conscious, and a man who knows help is coming does not struggle and bring more of the lining down.',
+      'Rig the rope and ladder ready at the mouth and clear a vehicle route to the well for the rescue truck, so that when trained people arrive they start work instead of starting preparations.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-16',
+    titleEn: 'Blood needed after the accident',
+    titleUr: 'حادثے کے بعد خون کی ضرورت',
+    narrativeEn: `You are a group of nine at a small town hospital at 8 p.m. where a van accident has brought in six injured. Two need surgery tonight and the hospital has no blood of the group they need; the blood bank in the district headquarters is fifty kilometres away and closes at 10 p.m., though its duty officer will stay if someone is coming. The hospital has one ambulance, in use, and there is a private car in the compound whose owner will lend it with a driver. Three of your group know their blood group and two match. The local college hostel is ten minutes away with about two hundred students. The hospital lab technician can screen and cross-match here but needs at least an hour. A cousin of one patient is shouting at the doctor and a crowd is collecting at the door of the emergency room.`,
+    narrativeUr: `آپ کا نو افراد کا گروپ رات آٹھ بجے ایک چھوٹے قصبے کے ہسپتال میں ہے جہاں ایک وین حادثے میں چھ زخمی لائے گئے ہیں۔ دو کو آج رات سرجری درکار ہے اور ہسپتال میں اُس گروپ کا خون موجود نہیں؛ ضلعی ہیڈ کوارٹر کا بلڈ بینک پچاس کلومیٹر دور ہے اور دس بجے بند ہو جاتا ہے، البتہ ڈیوٹی افسر رُک جائے گا اگر کوئی آ رہا ہو۔ ہسپتال کی واحد ایمبولینس استعمال میں ہے، اور احاطے میں ایک نجی گاڑی ہے جس کا مالک ڈرائیور سمیت دینے کو تیار ہے۔ آپ کے گروپ میں تین افراد اپنا بلڈ گروپ جانتے ہیں اور دو کا گروپ مل جاتا ہے۔ مقامی کالج کا ہاسٹل دس منٹ کے فاصلے پر ہے جہاں تقریباً دو سو طلبہ ہیں۔ ہسپتال کا لیب ٹیکنیشن یہیں اسکریننگ اور کراس میچ کر سکتا ہے مگر اُسے کم از کم ایک گھنٹہ چاہیے۔ ایک مریض کا کزن ڈاکٹر پر چیخ رہا ہے اور ایمرجنسی روم کے دروازے پر ہجوم جمع ہو رہا ہے۔`,
+    problems: [
+      'Two patients need blood tonight and there is none of the right group.',
+      'The district blood bank closes in two hours and is fifty kilometres away.',
+      'Donors have to be found, screened and cross-matched, which takes an hour.',
+      'An angry crowd is blocking the emergency room door.',
+    ],
+    modelPlan: [
+      'Put the two matching donors in front of the lab technician immediately and start the screening clock. An hour of cross-matching started now finishes before any car can return from the district headquarters, and it costs nothing to run both routes at once.',
+      'Send the private car to the blood bank at once with a written note of the group and units needed, and phone the duty officer to say it is on the road. Two hours is not a long window and it shrinks with every minute spent deciding.',
+      'Send two of the group to the college hostel with the blood group written down, to bring back donors. Two hundred students is the only large pool of donors in this town, and asking for one named group gets a better result than asking for volunteers in general.',
+      'Give the shouting cousin a job — fetching donors, holding the gate, writing names — rather than arguing with him. Relatives block doors because they have nothing to do and nobody has told them anything.',
+      'Ask one person to stand at the emergency room door, keep it clear, and tell the crowd once every ten minutes what is happening. A crowd that is being told something stops pushing; a crowd told nothing gets bigger.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-17',
+    titleEn: 'Stranded on the riverbank',
+    titleUr: 'دریا کے کنارے پھنس جانا',
+    narrativeEn: `Your group of eight crossed a shallow river channel on foot at 2 p.m. to reach a sandbar. At 5 p.m. you find the channel has risen behind you — a release from a barrage upstream — and is now waist-deep and fast, about thirty metres across. The sandbar is roughly two hundred metres long and the water is still rising; a line of driftwood shows how high it came last season, well above where you are standing. Two of your group cannot swim. You have two mobile phones with one bar of signal between them, a nylon rope about fifteen metres long, two empty water bottles each, and a large plastic sheet. A village is visible on the far bank about a kilometre downstream, and there are fishing boats drawn up there. Sunset is at 6.30 p.m. The far bank downstream is closer to the sandbar than the bank you came from.`,
+    narrativeUr: `آپ کا آٹھ افراد کا گروپ دوپہر دو بجے پیدل ایک کم گہرے دریائی پاٹ کو عبور کر کے ریتلے ٹیلے تک پہنچا تھا۔ شام پانچ بجے آپ دیکھتے ہیں کہ آپ کے پیچھے پاٹ میں پانی بڑھ گیا ہے — اوپر بیراج سے پانی چھوڑا گیا ہے — اور اب یہ کمر تک گہرا اور تیز ہے، تقریباً تیس میٹر چوڑا۔ ریتلا ٹیلہ تقریباً دو سو میٹر لمبا ہے اور پانی اب بھی بڑھ رہا ہے؛ لکڑی کے بہے ہوئے ٹکڑوں کی ایک لکیر بتاتی ہے کہ پچھلے موسم میں پانی کہاں تک آیا تھا، جو آپ کے کھڑے ہونے کی جگہ سے کافی اوپر ہے۔ آپ کے گروپ کے دو افراد تیرنا نہیں جانتے۔ آپ کے پاس دو موبائل فون ہیں جن میں مجموعی طور پر ایک بار سگنل ہے، تقریباً پندرہ میٹر لمبی نائیلون رسی، فی کس دو خالی پانی کی بوتلیں، اور ایک بڑی پلاسٹک شیٹ ہے۔ دوسرے کنارے پر تقریباً ایک کلومیٹر نیچے ایک گاؤں دکھائی دیتا ہے اور وہاں ماہی گیروں کی کشتیاں کھڑی ہیں۔ غروبِ آفتاب ساڑھے چھ بجے ہے۔ نیچے کی جانب دوسرا کنارہ اُس کنارے سے زیادہ قریب ہے جہاں سے آپ آئے تھے۔`,
+    problems: [
+      'The sandbar will be under water and the group is standing on it.',
+      'The way back is now a fast waist-deep channel and two people cannot swim.',
+      'There is one bar of signal and about ninety minutes of light.',
+      'Help is on the far bank, not the bank you came from.',
+    ],
+    modelPlan: [
+      'Make the call while there is still one bar: Rescue 1122 and, if anyone has it, the barrage control, with the location, eight people and the words "rising water, sandbar". Signal from a sandbar is not a resource you can count on twice.',
+      'Do not let anyone attempt the crossing back. Waist-deep and fast is exactly the water that sweeps people off their feet, and the two non-swimmers make a failed attempt a multiple drowning.',
+      "Move everyone to the highest point of the sandbar and mark the water's edge with a stick. Watching a mark tells you in ten minutes whether you have three hours or thirty, and that single fact decides everything else.",
+      'Signal the village across the water: the plastic sheet spread out, shouting in unison on a count, torches or phone lights as it darkens. Fishing boats are the nearest real rescue and their owners are a kilometre away, not fifty.',
+      'Prepare for the worst case while waiting: everyone keeps shoes on, capped empty bottles tied inside clothing for buoyancy, non-swimmers roped between two swimmers, and an agreed downstream aiming point. A plan made in daylight is worth ten made in the water.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-18',
+    titleEn: 'Hostel fire alarm at night',
+    titleUr: 'رات کو ہاسٹل میں آگ کا الارم',
+    narrativeEn: `You are five senior students in a three-storey college hostel of a hundred and forty residents. At 1 a.m. a fire starts in a store room on the ground floor beside the main staircase; smoke is already filling the ground-floor corridor. The hostel has a second staircase at the rear, but it is chained shut at night because of thefts, and the warden who holds the key lives in a bungalow a hundred metres away. There is a fire extinguisher on each floor and a water tank on the roof with a hosepipe. Most residents are asleep and many doors are locked from inside. The hostel gate is locked and the chowkidar has the key. The fire brigade is twelve minutes away. Two residents on the second floor use crutches. There is mobile signal.`,
+    narrativeUr: `آپ پانچ سینئر طلبہ ایک تین منزلہ کالج ہاسٹل میں ہیں جہاں ایک سو چالیس رہائشی ہیں۔ رات ایک بجے گراؤنڈ فلور پر مرکزی زینے کے ساتھ ایک اسٹور روم میں آگ لگ جاتی ہے؛ دھواں گراؤنڈ فلور کی راہداری میں بھر رہا ہے۔ ہاسٹل میں پچھلی طرف دوسرا زینہ بھی ہے، مگر چوریوں کی وجہ سے رات کو اُس پر زنجیر لگا دی جاتی ہے، اور چابی رکھنے والا وارڈن سو میٹر دور بنگلے میں رہتا ہے۔ ہر منزل پر ایک آگ بجھانے کا آلہ ہے اور چھت پر پانی کا ٹینک اور ہوز پائپ موجود ہے۔ زیادہ تر رہائشی سو رہے ہیں اور کئی دروازے اندر سے بند ہیں۔ ہاسٹل کا گیٹ مقفل ہے اور چابی چوکیدار کے پاس ہے۔ فائر بریگیڈ بارہ منٹ کے فاصلے پر ہے۔ دوسری منزل پر دو رہائشی بیساکھیوں پر چلتے ہیں۔ موبائل سگنل موجود ہے۔`,
+    problems: [
+      'A hundred and forty sleeping residents have one smoke-filled staircase.',
+      'The second staircase is chained and the key is a hundred metres away.',
+      'The compound gate is locked against the fire brigade.',
+      'Two residents on the second floor cannot use stairs quickly.',
+    ],
+    modelPlan: [
+      'Call the fire brigade and send one person straight to the chowkidar to get the compound gate open. Twelve minutes is the best case and it becomes twenty if the engine arrives at a locked gate, which is a delay paid by everyone inside.',
+      'Send one person to the warden for the rear staircase key and, if he is slow, break the chain. One usable staircase for a hundred and forty people is the arithmetic that kills; two staircases is a different night.',
+      'Two people wake the floors from the top down, banging doors and shouting the fire is below and to use the rear stairs. Top down, because the third floor has the furthest to go and the least time to spare.',
+      'Start the two crutch users moving early with one person assigned to each, before the corridors fill. People who move slowly must leave first, not last, and that only happens if somebody decides it in the first minute.',
+      "Use the extinguishers only to hold the corridor open from a safe distance, never on the store room itself, and do not send anyone back inside once they are out. The roof tank and hose are the fire brigade's job, not yours.",
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-19',
+    titleEn: 'Relief convoy short of fuel',
+    titleUr: 'امدادی قافلے میں ایندھن کی کمی',
+    narrativeEn: `You are six volunteers leading a relief convoy of three trucks carrying tents, flour and drinking water to a flood-hit village. At 3 p.m., forty kilometres short of the village, you find the fuel gauge of the lead truck near empty: it was not filled at the last town, and the two other trucks have enough only for themselves. The last pump is thirty-five kilometres back and the road behind has a queue at a checkpost that took an hour this morning. The village has been cut off four days and a health worker there has phoned to say drinking water is the urgent need. A side track reaches the village in twenty-two kilometres but is soft after rain and will not take a loaded truck. There are two tractors with trolleys at a roadside village a kilometre ahead, whose owners will help for fuel money. Dark is at 6 p.m.`,
+    narrativeUr: `آپ چھ رضاکار تین ٹرکوں کے ایک امدادی قافلے کی قیادت کر رہے ہیں جو سیلاب زدہ گاؤں کے لیے خیمے، آٹا اور پینے کا پانی لے جا رہا ہے۔ سہ پہر تین بجے، گاؤں سے چالیس کلومیٹر پہلے، آپ دیکھتے ہیں کہ اگلے ٹرک کا ایندھن تقریباً ختم ہے: پچھلے قصبے میں اُسے بھرا نہیں گیا تھا، اور باقی دو ٹرکوں میں صرف اپنے لیے ایندھن ہے۔ آخری پمپ پینتیس کلومیٹر پیچھے ہے اور پچھلی سڑک پر ایک چیک پوسٹ ہے جہاں آج صبح ایک گھنٹہ لگا تھا۔ گاؤں چار دن سے کٹا ہوا ہے اور وہاں کے ایک ہیلتھ ورکر نے فون پر بتایا ہے کہ پینے کا پانی سب سے زیادہ ضروری ہے۔ ایک متبادل کچی سڑک بائیس کلومیٹر میں گاؤں تک پہنچتی ہے مگر بارش کے بعد نرم ہے اور لدا ہوا ٹرک نہیں سنبھالے گی۔ ایک کلومیٹر آگے سڑک کنارے گاؤں میں ٹرالیوں سمیت دو ٹریکٹر ہیں، جن کے مالک ایندھن کے پیسوں پر مدد کو تیار ہیں۔ اندھیرا چھ بجے ہوگا۔`,
+    problems: [
+      'One of three loaded trucks cannot move and blocks the convoy.',
+      'The village has been without clean water for four days.',
+      'The only short route will not take a loaded truck.',
+      'Three hours of daylight remain and the fuel is thirty-five kilometres backwards.',
+    ],
+    modelPlan: [
+      'Split the load by priority rather than moving the convoy as one. Water goes first, on the two trucks that can move, and it leaves within the half hour. Flour and tents can arrive tomorrow; a village four days without clean water cannot.',
+      "Hire both tractors and trolleys now and put the stranded truck's water onto them for the soft side track. Twenty-two kilometres of soft track is exactly what a tractor is for, and it is the only way that load reaches the village today.",
+      'Send one volunteer back to the pump with cans and money, by motorcycle or lift if one can be had, rather than sending a truck. The checkpost queue punishes vehicles, not people, and the stranded truck only needs enough fuel to reach the pump itself.',
+      'Leave two volunteers with the stranded truck and its remaining load. An unattended relief truck on a road near a flood is a load that will not be there in the morning.',
+      'Phone the health worker with what is actually coming and when, and ask for people and handcarts at the village end. A village that knows the tractors arrive at dusk can have unloading ready and lit, which is an hour saved at the far end.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-20',
+    titleEn: 'Chemical leak at the mill',
+    titleUr: 'مل میں کیمیکل کا اخراج',
+    narrativeEn: `You are seven trainees at a textile mill at 9 a.m. when a valve fails on a chlorine cylinder in the bleaching section. A yellow-green gas is drifting from the section towards the main shed, and the wind is blowing from the west, carrying it over the workers' canteen where about sixty people are having breakfast. Four workers in the bleaching section are coughing badly and two have been dragged out by colleagues. The mill has a siren operated from the gate office, a fire party of six with two breathing sets, and a dispensary with oxygen. The main gate is west of the shed, upwind; the loading gate is east, downwind, and is where most workers park. The nearest hospital is nine kilometres away. The section supervisor says the cylinder valve can be closed but only by someone wearing a breathing set.`,
+    narrativeUr: `آپ سات تربیت یافتہ طلبہ صبح نو بجے ایک ٹیکسٹائل مل میں ہیں کہ بلیچنگ سیکشن میں ایک کلورین سلنڈر کا والو ناکارہ ہو جاتا ہے۔ زرد سبز گیس سیکشن سے مرکزی شیڈ کی طرف بڑھ رہی ہے، اور ہوا مغرب سے چل رہی ہے جو اُسے مزدوروں کی کینٹین کے اوپر لے جا رہی ہے جہاں تقریباً ساٹھ افراد ناشتہ کر رہے ہیں۔ بلیچنگ سیکشن کے چار مزدوروں کو شدید کھانسی ہو رہی ہے اور دو کو ساتھیوں نے گھسیٹ کر باہر نکالا ہے۔ مل میں گیٹ آفس سے چلنے والا سائرن، چھ افراد کی فائر پارٹی جس کے پاس دو بریدنگ سیٹ ہیں، اور آکسیجن والی ڈسپنسری موجود ہے۔ مرکزی گیٹ شیڈ کے مغرب میں یعنی ہوا کے رخ کے مخالف ہے؛ لوڈنگ گیٹ مشرق میں ہوا کے رخ پر ہے اور وہیں زیادہ تر مزدور گاڑیاں کھڑی کرتے ہیں۔ قریب ترین ہسپتال نو کلومیٹر دور ہے۔ سیکشن سپروائزر کہتا ہے کہ سلنڈر کا والو بند کیا جا سکتا ہے مگر صرف بریدنگ سیٹ پہن کر۔`,
+    problems: [
+      'A chlorine cloud is drifting towards a canteen with sixty people in it.',
+      'Four workers already have significant exposure.',
+      'The gate most workers would run to is downwind.',
+      'Only two breathing sets exist and the valve must be closed by hand.',
+    ],
+    modelPlan: [
+      'Sound the siren and get the evacuation direction announced in the same breath: everyone to the main gate, west, upwind. A siren alone sends sixty people to the loading gate they always use, which is straight into the cloud.',
+      'Clear the canteen first, by people going in rather than by shouting from outside. It holds the largest group of people who do not yet know anything is wrong, and it is the next thing the cloud reaches.',
+      "Send the fire party's two breathing sets to close the valve, and only those two. Chlorine stops spreading when the valve shuts and not before, but a third person without a set is a casualty, not a help.",
+      'Get the four exposed workers into fresh air upwind and onto the dispensary oxygen, sitting up, and call for ambulances for all four. Chlorine injury worsens over hours; people who look better after ten minutes still need a hospital.',
+      'Post someone at the loading gate to turn back anyone heading for their motorcycle, and count the evacuated against the shift register at the main gate. A count is the only way to know whether anyone is still inside.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-21',
+    titleEn: 'Trek group caught by weather',
+    titleUr: 'ٹریکنگ گروپ موسم کی زد میں',
+    narrativeEn: `Your trekking group of ten is at 3,400 metres at 2 p.m. when cloud closes in and sleet begins. You are two hours above the last shepherd hut and four hours below the pass you meant to cross. One member, Bilal, is shivering hard, has stopped complaining and is slow to answer questions. Another has a blister that has opened. The group carries four small tents, two stoves with fuel for two days, sleeping bags for everyone, a satellite messenger that sends one-way texts, and a first-aid kit. The guide says the weather here usually clears by evening but may not. There is no mobile signal. Going down means two hours on a wet, steep path in poor visibility; staying means camping on a slope with no water source within twenty minutes' walk.`,
+    narrativeUr: `آپ کا دس افراد کا ٹریکنگ گروپ دوپہر دو بجے 3,400 میٹر پر ہے کہ بادل گھر آتے ہیں اور ژالہ باری شروع ہو جاتی ہے۔ آپ آخری چرواہے کی جھونپڑی سے دو گھنٹے اوپر اور اُس درے سے چار گھنٹے نیچے ہیں جسے آپ عبور کرنا چاہتے تھے۔ ایک ساتھی بلال شدت سے کانپ رہا ہے، اُس نے شکایت کرنا چھوڑ دیا ہے اور سوالوں کا جواب دیر سے دیتا ہے۔ ایک اور کے پاؤں کا چھالا پھٹ گیا ہے۔ گروپ کے پاس چار چھوٹے خیمے، دو چولہے جن کا ایندھن دو دن کا ہے، سب کے لیے سلیپنگ بیگ، ایک سیٹلائٹ میسنجر جو صرف پیغام بھیج سکتا ہے، اور ابتدائی طبی امداد کا بکس ہے۔ گائیڈ کہتا ہے کہ یہاں موسم عموماً شام تک صاف ہو جاتا ہے مگر شاید نہ بھی ہو۔ موبائل سگنل نہیں۔ نیچے جانے کا مطلب کم حد نگاہ میں گیلی، ڈھلوان پگڈنڈی پر دو گھنٹے ہے؛ رُکنے کا مطلب ایسی ڈھلوان پر خیمہ زنی ہے جہاں بیس منٹ کی مسافت پر پانی کا کوئی ذریعہ نہیں۔`,
+    problems: [
+      'Bilal is showing early hypothermia, which worsens quickly at altitude.',
+      'The group must choose between a wet descent and an exposed camp.',
+      'The satellite messenger can send but cannot receive an answer.',
+      'Water for ten people is twenty minutes away from any campsite here.',
+    ],
+    modelPlan: [
+      'Stop and deal with Bilal before deciding anything else. Shelter, dry layers, a sleeping bag, a warm sweet drink from the stove. Someone who has stopped complaining and answers slowly is not merely cold, and he cannot safely walk two hours down in that state.',
+      'Send the satellite message now with position, number in party and the words "suspected hypothermia". It is one-way, so it must be sent early and must contain everything; waiting to see whether he improves wastes the only channel you have.',
+      'Pitch camp here rather than descend. A wet, steep path in poor visibility with a hypothermic member is how a cold evening becomes a fall, and the group is carrying everything it needs to sit out a night.',
+      'Send four of the strongest, in two pairs, for water with a fixed return time, and collect sleet and snow to melt in the meantime. Nobody goes alone and nobody goes past the time.',
+      'Dress the open blister properly tonight rather than in the morning. It is the injury everyone postpones, and an infected foot the next day turns one slow walker into a carried one.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-22',
+    titleEn: 'Storm at the fishing harbour',
+    titleUr: 'ماہی گیری کی بندرگاہ پر طوفان',
+    narrativeEn: `You are eight students at a small fishing harbour at 4 p.m. when the harbour master receives a cyclone warning: winds are expected by 9 p.m. Nine boats are still at sea, four of them with radio. About forty families live in huts on the sand spit, which floods in any surge. The harbour has a loudspeaker on the mosque, a tractor, two pickup vans, and a cyclone shelter three kilometres inland that holds about three hundred people. The harbour master says the boats without radio usually return by dusk. Many families will not leave their huts while their men are at sea. The one road inland crosses a creek bridge that is submerged in a surge. The nearest police post is eight kilometres inland and has a vehicle. There is mobile signal now but it is unreliable in storms.`,
+    narrativeUr: `آپ آٹھ طلبہ سہ پہر چار بجے ایک چھوٹی ماہی گیری بندرگاہ پر ہیں کہ ہاربر ماسٹر کو طوفان کی وارننگ ملتی ہے: تیز ہوائیں رات نو بجے تک متوقع ہیں۔ نو کشتیاں ابھی سمندر میں ہیں، جن میں سے چار کے پاس ریڈیو ہے۔ تقریباً چالیس خاندان ریت کی پٹی پر جھونپڑیوں میں رہتے ہیں، جو کسی بھی طوفانی لہر میں ڈوب جاتی ہے۔ بندرگاہ پر مسجد کا لاؤڈ اسپیکر، ایک ٹریکٹر، دو پک اَپ وین، اور تین کلومیٹر اندرونی علاقے میں ایک طوفانی پناہ گاہ ہے جس میں تقریباً تین سو افراد سما سکتے ہیں۔ ہاربر ماسٹر کہتا ہے کہ بغیر ریڈیو والی کشتیاں عموماً غروبِ آفتاب تک لوٹ آتی ہیں۔ بہت سے خاندان اُس وقت تک جھونپڑیاں نہیں چھوڑیں گے جب تک اُن کے مرد سمندر میں ہیں۔ اندر جانے والی واحد سڑک ایک ندی کے پُل سے گزرتی ہے جو طوفانی لہر میں ڈوب جاتا ہے۔ قریب ترین پولیس چوکی آٹھ کلومیٹر اندر ہے اور اُس کے پاس گاڑی ہے۔ اس وقت موبائل سگنل ہے مگر طوفان میں ناقابلِ اعتبار ہو جاتا ہے۔`,
+    problems: [
+      'Nine boats are at sea with five of them unreachable by radio.',
+      'Forty families are on a spit that floods, and will not leave without their men.',
+      'The only road inland crosses a bridge that goes under in a surge.',
+      'Five hours remain and the shelter is three kilometres away.',
+    ],
+    modelPlan: [
+      'Get the radio warning out to the four boats that can hear it and ask them to pass it on by sight and signal. Those four can reach boats you cannot, and the message costs nothing to repeat.',
+      'Start moving the families now, before dusk and before the bridge is a question. Three kilometres by tractor and two vans is several trips; begun at four it finishes, begun at seven it does not.',
+      'Answer the objection instead of arguing with it: set up a named person at the harbour with a list who will receive every returning boat and send the men straight to the shelter. Families leave when they know where their men will be told to go.',
+      'Phone the police post while the signal holds and ask for their vehicle and for the coastguard to be told about five boats without radio. A storm takes the phones early, so the call that brings outside help has to be made while the sky is still clear.',
+      "Send the last vehicle across the creek bridge before the surge, not after, and leave one of your group at the shelter to count arrivals against the harbour master's list of families and boats. Whoever is missing at nine is who a search starts with.",
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-23',
+    titleEn: 'Food poisoning at the wedding',
+    titleUr: 'شادی کی تقریب میں فوڈ پوائزننگ',
+    narrativeEn: `You are six guests at a wedding in a village hall where about four hundred people ate at 9 p.m. By 11 p.m. some thirty guests are vomiting, several have severe stomach cramps, and two elderly guests have fainted. The nearest basic health unit is twelve kilometres away with one doctor on call; the district hospital is thirty-eight kilometres. Available vehicles are a wedding car, two tractors with trolleys and a van belonging to the caterer. There is clean bottled water in the hall and a working tap. The caterer is packing up and wants to leave with the remaining food. Guests are still eating at three tables. There is mobile signal. Several families have already put children in cars to take them home, which will scatter the affected across four villages.`,
+    narrativeUr: `آپ چھ مہمان ایک گاؤں کے ہال میں شادی کی تقریب میں ہیں جہاں رات نو بجے تقریباً چار سو افراد نے کھانا کھایا۔ رات گیارہ بجے تک تقریباً تیس مہمانوں کو قے آ رہی ہے، کئی کو شدید پیٹ درد ہے، اور دو بزرگ مہمان بے ہوش ہو چکے ہیں۔ قریب ترین بنیادی مرکزِ صحت بارہ کلومیٹر دور ہے جہاں ایک ڈاکٹر آن کال ہے؛ ضلعی ہسپتال اڑتیس کلومیٹر دور ہے۔ دستیاب گاڑیوں میں شادی کی کار، ٹرالیوں سمیت دو ٹریکٹر اور کیٹرر کی وین شامل ہیں۔ ہال میں صاف بوتل بند پانی اور چلتا ہوا نل موجود ہے۔ کیٹرر سامان سمیٹ رہا ہے اور بچا ہوا کھانا لے کر جانا چاہتا ہے۔ تین میزوں پر مہمان ابھی بھی کھا رہے ہیں۔ موبائل سگنل موجود ہے۔ کئی خاندان بچوں کو گاڑیوں میں بٹھا کر گھر لے جا رہے ہیں، جس سے متاثرہ افراد چار گاؤں میں بکھر جائیں گے۔`,
+    problems: [
+      'Thirty people are ill and two are unconscious, twelve kilometres from a doctor.',
+      'Guests are still eating the food that is causing it.',
+      'The evidence — the remaining food — is about to leave with the caterer.',
+      'Affected families are dispersing to four villages before anyone has been counted.',
+    ],
+    modelPlan: [
+      'Stop the serving at the three tables that are still eating, and say out loud why. It takes thirty seconds and it is the only action that reduces the number of patients rather than treating them.',
+      'Phone the basic health unit and the district hospital now with numbers, symptoms and the time everyone ate. Thirty patients arriving unannounced at a one-doctor unit is a worse outcome than thirty expected ones.',
+      'Get the two unconscious guests into the wedding car for the health unit at once, with one of your group and a relative each. Everyone else who can sit up starts on clean water in small sips while transport is organised.',
+      'Keep the caterer and a sample of every dish, sealed and labelled, before the van leaves. Without it nobody can tell a hundred other guests tomorrow what to look out for.',
+      'Ask the families leaving to give a name, village and phone number to one person at the door before they go. Some of the four hundred will fall ill after midnight, and a list is the only way anyone reaches them.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-24',
+    titleEn: 'Livestock trapped by rising water',
+    titleUr: 'بڑھتے پانی میں پھنسے مویشی',
+    narrativeEn: `Your group of seven is at a cattle market on low ground beside a hill torrent at 6 a.m. when water starts rising fast after overnight rain upstream. About two hundred animals are tethered in pens, with forty traders and helpers present. The single exit track climbs to the main road four hundred metres away but is already ankle-deep and will be impassable to vehicles within the hour. A loading ramp and two cattle trucks stand at the pens; one truck will not start. An old man who sleeps in the market office has not appeared this morning and the office is on the lowest ground. Traders are beginning to cut tethers and drive animals in different directions, some towards the torrent. There is mobile signal. The nearest rescue post is fourteen kilometres away.`,
+    narrativeUr: `آپ کا سات افراد کا گروپ صبح چھ بجے ایک پہاڑی نالے کے کنارے نشیبی زمین پر مویشی منڈی میں ہے کہ اوپر رات بھر کی بارش کے بعد پانی تیزی سے بڑھنے لگتا ہے۔ تقریباً دو سو جانور باڑوں میں بندھے ہیں، اور چالیس تاجر اور مددگار موجود ہیں۔ باہر نکلنے کا واحد کچا راستہ چار سو میٹر دور مرکزی سڑک کی طرف چڑھتا ہے مگر وہ پہلے ہی ٹخنوں تک پانی میں ہے اور ایک گھنٹے کے اندر گاڑیوں کے لیے ناقابلِ استعمال ہو جائے گا۔ باڑوں کے پاس ایک لوڈنگ ریمپ اور دو مویشی ٹرک کھڑے ہیں؛ ایک ٹرک اسٹارٹ نہیں ہو رہا۔ منڈی کے دفتر میں سونے والا ایک بوڑھا آدمی آج صبح نظر نہیں آیا اور دفتر سب سے نشیبی جگہ پر ہے۔ تاجر رسیاں کاٹ کر جانوروں کو مختلف سمتوں میں ہانکنے لگے ہیں، کچھ نالے کی طرف۔ موبائل سگنل موجود ہے۔ قریب ترین ریسکیو پوسٹ چودہ کلومیٹر دور ہے۔`,
+    problems: [
+      'An old man may be asleep in the office on the lowest ground.',
+      'The only exit track closes to vehicles within the hour.',
+      'Two hundred tethered animals cannot free themselves.',
+      'Traders are driving animals towards the torrent in the confusion.',
+    ],
+    modelPlan: [
+      'Send two people to the market office for the old man immediately. He is the only person here who may not know the water is rising, and he is standing on the ground it reaches first.',
+      'Get the working truck loaded and up the track now, and push the dead one out of the way rather than trying to fix it. One truck making two runs before the track closes is worth more than two trucks after it has.',
+      'Take charge of the direction the animals are driven: one route, up the track towards the main road, and say it loudly and repeatedly. Forty men each choosing a direction is how animals and people end up in the torrent; the choice of direction matters more than who makes it.',
+      'Call the rescue post with the location and the words "cattle market, rising water, forty people". Fourteen kilometres is twenty minutes, so the call is useful only if it is made in the first ten.',
+      'Once the track is closing, stop loading and get every person onto the high ground and counted, whatever is still tethered. Animals are the reason everyone is here and they are still not worth a person, and that judgement has to be made before the water makes it for you.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-25',
+    titleEn: 'Collapse at the building site',
+    titleUr: 'زیرِ تعمیر عمارت میں انہدام',
+    narrativeEn: `You are five engineering students visiting a building site at 11 a.m. when freshly poured concrete shuttering gives way on the third floor. Two labourers have fallen with the debris into the second-floor slab opening; one is lying still and one is calling out. A third is hanging from a reinforcement bar at the edge and cannot climb up. The site has a tower hoist that is now bent and unusable, two ladders, coils of rope, safety helmets for about ten, and one harness. The site engineer has gone to the city and the foreman is at the far end of the plot. About twenty labourers are running towards the collapse. The site gate is blocked by a parked concrete mixer. The nearest hospital is six kilometres away. There is mobile signal, and more of the shuttering above is creaking.`,
+    narrativeUr: `آپ پانچ انجینئرنگ کے طلبہ صبح گیارہ بجے ایک زیرِ تعمیر عمارت کا دورہ کر رہے ہیں کہ تیسری منزل پر تازہ ڈالے گئے کنکریٹ کی شٹرنگ ٹوٹ جاتی ہے۔ دو مزدور ملبے کے ساتھ دوسری منزل کے سلیب کے سوراخ میں گر چکے ہیں؛ ایک بے حس و حرکت پڑا ہے اور ایک آوازیں دے رہا ہے۔ ایک تیسرا کنارے پر سریے سے لٹکا ہوا ہے اور اوپر نہیں چڑھ سکتا۔ سائٹ پر ایک ٹاور ہوسٹ ہے جو اب مڑ چکا ہے اور ناقابلِ استعمال ہے، دو سیڑھیاں، رسیوں کے بنڈل، تقریباً دس حفاظتی ہیلمٹ، اور ایک ہارنس موجود ہے۔ سائٹ انجینئر شہر گیا ہوا ہے اور فورمین پلاٹ کے دوسرے سرے پر ہے۔ تقریباً بیس مزدور انہدام کی طرف بھاگ رہے ہیں۔ سائٹ کا گیٹ کھڑے ہوئے کنکریٹ مکسر سے بند ہے۔ قریب ترین ہسپتال چھ کلومیٹر دور ہے۔ موبائل سگنل موجود ہے، اور اوپر باقی شٹرنگ سے چرچراہٹ کی آوازیں آ رہی ہیں۔`,
+    problems: [
+      'A man is hanging from a bar and will fall when his grip goes.',
+      'Two men are down in the debris, one of them unresponsive.',
+      'More shuttering above is about to come down on any rescuers.',
+      'A parked mixer blocks the only gate for an ambulance.',
+    ],
+    modelPlan: [
+      'Get the hanging man secured first, with the harness and rope from above and two people on the line. He is the casualty whose situation is getting worse by the second, and the only one whose fall can still be prevented.',
+      'Call Rescue 1122 and move the mixer or find its driver in the same minute. Six kilometres is nothing if the ambulance can get in and everything if it cannot, and moving a mixer takes longer than people expect.',
+      "Stop the twenty labourers from climbing to the collapse, and put them on clearing a route, fetching the ladders and ropes, and holding the crowd back. They are the site's manpower; what they must not be is more weight under creaking shuttering.",
+      'Send two people with helmets to the two in the debris by the safest approach, and do not move the unresponsive man except to clear his airway. A fall from a floor above is a spinal injury until a doctor says otherwise.',
+      'Get the foreman to shut off power to the site and keep everyone out from under the third-floor edge until the remaining shuttering is propped or dropped deliberately. The second collapse is the one that hurts the rescuers.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-26',
+    titleEn: 'Lost child at the fair',
+    titleUr: 'میلے میں گم شدہ بچہ',
+    narrativeEn: `You are nine volunteers at a district fair on an open ground at 7 p.m. A woman reports that her four-year-old daughter has been missing for about twenty minutes. There are perhaps five thousand people on the ground. The fair has a public-address system at the stage, four lit gates, a first-aid post, and a canal with a low parapet running along the northern edge about eighty metres from the stalls. The police post at the fair has two constables. The child was last seen near the swings in the middle of the ground, wearing a red frock. It is dark beyond the stall lights. The mother is becoming hysterical and her husband has gone to search alone towards the car park. Mobile signal is poor because of the crowd. The fair closes at 10 p.m. and people will start leaving in an hour.`,
+    narrativeUr: `آپ نو رضاکار شام سات بجے ایک ضلعی میلے میں کھلے میدان پر ہیں۔ ایک خاتون اطلاع دیتی ہے کہ اُس کی چار سالہ بیٹی تقریباً بیس منٹ سے لاپتہ ہے۔ میدان میں تقریباً پانچ ہزار افراد موجود ہیں۔ میلے میں اسٹیج پر اسپیکر سسٹم، چار روشن گیٹ، ایک ابتدائی طبی امداد کا مرکز، اور شمالی کنارے پر اسٹالوں سے تقریباً اَسی میٹر دور نیچی منڈیر والی ایک نہر ہے۔ میلے کی پولیس چوکی پر دو کانسٹیبل ہیں۔ بچی کو آخری بار میدان کے وسط میں جھولوں کے پاس دیکھا گیا تھا، وہ سرخ فراک پہنے ہوئے تھی۔ اسٹالوں کی روشنی سے پرے اندھیرا ہے۔ ماں بے قابو ہو رہی ہے اور اُس کا شوہر اکیلا پارکنگ کی طرف تلاش کرنے چلا گیا ہے۔ ہجوم کی وجہ سے موبائل سگنل کمزور ہے۔ میلہ دس بجے بند ہوگا اور ایک گھنٹے میں لوگ نکلنا شروع کر دیں گے۔`,
+    problems: [
+      'A four-year-old is missing in a crowd of five thousand, in the dark.',
+      'An unfenced canal runs eighty metres from where she was last seen.',
+      'The crowd will start dispersing through four gates within the hour.',
+      'The father is searching alone and is now a second person to keep track of.',
+    ],
+    modelPlan: [
+      'Get the announcement out from the stage immediately: name, age, red frock, and a single instruction that anyone who finds her brings her to the first-aid post. Five thousand people looking is the largest search party anyone will ever assemble, and it costs one minute.',
+      'Put one volunteer on each of the four gates at once, briefed on what she is wearing. A small child leaving with the wrong adult goes out through a gate, and gates are where a handful of people can watch thousands.',
+      'Send two volunteers to walk the canal parapet both ways with torches. It is the one place on this ground where twenty minutes of being lost becomes fatal, and it must be checked early even though nobody wants to.',
+      'Ask the two constables to sweep the dark ground beyond the stall lights. Small children wander away from noise and light, not towards it, and that is the area the crowd is not covering.',
+      'Keep the mother at the first-aid post with one volunteer, and send someone to find the father and bring him back to the same place. A fixed reunion point is worth more than two frantic parents searching, and it is where the child will be brought.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-27',
+    titleEn: 'Snakebite on the field trip',
+    titleUr: 'فیلڈ ٹرپ پر سانپ کا کاٹا',
+    narrativeEn: `Your group of eight is on a botany field trip in scrubland at 4 p.m. when Usman is bitten on the ankle by a snake he describes as short and thick with a pattern. He is frightened, breathing fast, and the bite site is swelling. You are five kilometres from the road on a footpath, and the van is parked there with a driver. The nearest rural health centre is eighteen kilometres from the road head and may not stock antivenom; the district hospital is fifty-five kilometres and does. You have a first-aid kit with bandages, three litres of water, two walking poles and a light tarpaulin. There is one bar of mobile signal at a rise ten minutes back. Two of your group want to cut the bite and suck out the venom; one wants to tie a tight tourniquet above the knee.`,
+    narrativeUr: `آپ کا آٹھ افراد کا گروپ سہ پہر چار بجے جھاڑیوں والے علاقے میں نباتات کے فیلڈ ٹرپ پر ہے کہ عثمان کے ٹخنے پر ایک سانپ کاٹ لیتا ہے جسے وہ چھوٹا، موٹا اور نقش و نگار والا بتاتا ہے۔ وہ خوفزدہ ہے، اُس کا سانس تیز ہے، اور کاٹے کی جگہ سوج رہی ہے۔ آپ سڑک سے پانچ کلومیٹر دور ایک پگڈنڈی پر ہیں، اور وین ڈرائیور سمیت وہیں کھڑی ہے۔ قریب ترین دیہی مرکزِ صحت سڑک کے سرے سے اٹھارہ کلومیٹر دور ہے اور ممکن ہے وہاں اینٹی وینم نہ ہو؛ ضلعی ہسپتال پچپن کلومیٹر دور ہے اور وہاں موجود ہے۔ آپ کے پاس پٹیوں والا ابتدائی طبی امداد کا بکس، تین لیٹر پانی، دو واکنگ اسٹک اور ایک ہلکا ترپال ہے۔ دس منٹ پیچھے ایک ٹیلے پر موبائل کا ایک بار سگنل آتا ہے۔ آپ کے گروپ کے دو افراد زخم کاٹ کر زہر چوسنا چاہتے ہیں؛ ایک گھٹنے کے اوپر سخت پٹی باندھنا چاہتا ہے۔`,
+    problems: [
+      'A possibly venomous bite is five kilometres from the nearest vehicle.',
+      'The nearer health centre may not stock antivenom and the one that does is fifty-five kilometres further.',
+      'Members of the group want to apply first aid that does active harm.',
+      'The patient is panicking, which speeds venom through the body.',
+    ],
+    modelPlan: [
+      'Stop the cutting and the tourniquet before anything else. Both are widely believed and both make snakebite worse; refusing them is the single most useful piece of medicine available to this group.',
+      'Sit Usman down, keep the bitten leg still and below the level of his heart, and splint it with a walking pole. Movement and fear both move venom; calm and stillness are the treatment until a hospital is reached.',
+      'Send two runners to the rise for signal to call the district hospital, say a snakebite is coming and ask whether the health centre has antivenom tonight. That one question decides whether you drive eighteen kilometres or fifty-five, and guessing wrong costs an hour.',
+      'Send one runner ahead to the van so the driver has it turned, running and ready at the path head rather than asleep when the party arrives.',
+      'Carry him out on the tarpaulin between four people, changing pairs, rather than letting him walk. Five kilometres walked by the patient undoes everything the stillness was for, and eight people can carry one.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-28',
+    titleEn: 'Water supply fails in the summer village',
+    titleUr: 'گرمیوں میں گاؤں کی پانی کی فراہمی بند',
+    narrativeEn: `You are six volunteers in a village of about nine hundred people during a June heatwave. At 8 a.m. the village tube-well burns out its motor. The village has one overhead tank holding water for roughly one day, a hand pump at the mosque that gives brackish water, and a canal two kilometres away that is running but dirty. The nearest town with a motor rewinding shop is twenty-six kilometres away and the shop closes at 6 p.m.; a new motor would take three days. There are two tractors with trolleys and four large drums in the village, and a school with a boundary wall where a distribution point could be set up. About sixty households have small children. Villagers are already queueing at the overhead tank outlet and filling more than they need. There is mobile signal and the union council office has a phone.`,
+    narrativeUr: `آپ چھ رضاکار جون کی شدید گرمی میں تقریباً نو سو افراد کے گاؤں میں ہیں۔ صبح آٹھ بجے گاؤں کے ٹیوب ویل کی موٹر جل جاتی ہے۔ گاؤں میں ایک اوور ہیڈ ٹینک ہے جس میں تقریباً ایک دن کا پانی ہے، مسجد کے پاس ایک ہینڈ پمپ ہے جس کا پانی کھارا ہے، اور دو کلومیٹر دور ایک نہر ہے جو چل رہی ہے مگر پانی گدلا ہے۔ موٹر ری وائنڈنگ کی دکان والا قریب ترین قصبہ چھبیس کلومیٹر دور ہے اور دکان شام چھ بجے بند ہو جاتی ہے؛ نئی موٹر میں تین دن لگیں گے۔ گاؤں میں ٹرالیوں سمیت دو ٹریکٹر اور چار بڑے ڈرم ہیں، اور ایک اسکول ہے جس کی چاردیواری میں تقسیم کا مرکز بنایا جا سکتا ہے۔ تقریباً ساٹھ گھرانوں میں چھوٹے بچے ہیں۔ گاؤں والے پہلے ہی اوور ہیڈ ٹینک کے نلکے پر قطار لگا چکے ہیں اور ضرورت سے زیادہ بھر رہے ہیں۔ موبائل سگنل موجود ہے اور یونین کونسل کے دفتر میں فون ہے۔`,
+    problems: [
+      'Nine hundred people have one day of stored water in a heatwave.',
+      'The repair shop is twenty-six kilometres away and shuts at six.',
+      'The only plentiful water is dirty canal water.',
+      'Unrationed queueing will empty the tank before any repair is possible.',
+    ],
+    modelPlan: [
+      'Pull the motor and send it to the town on a tractor within the hour. Everything else on this list manages a shortage; this is the only step that ends it, and the shop closes at six.',
+      'Close the tank outlet and reopen it on fixed timings with named people issuing water. One day of water shared is three days of water; one day of water queued for is half a day and a fight.',
+      'Set the school up as the distribution point and give households with small children and the sick the first slot. A rule announced before the shortage bites is accepted; the same rule announced on day two is resented.',
+      'Start the tractors hauling canal water in the drums for washing and animals only, clearly separated from drinking water. Most of what a village uses water for does not have to be clean, and taking that load off the tank is what stretches it.',
+      'Phone the union council and the public health engineering office to ask for a bowser and a standby motor. It is a free call, it takes two minutes, and it is the only route to help that does not depend on one repair shop.',
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-29',
+    titleEn: 'Minibus in the canal',
+    titleUr: 'نہر میں گری ہوئی منی بس',
+    narrativeEn: `You are seven people on a canal bank road at 6.30 a.m. when a minibus ahead of you swerves and goes into the canal. It is floating low, about fifteen metres out, and the current is moving it slowly downstream. You can see passengers at the windows; the bus normally carries about twenty. Two men have already got out and are swimming for the bank. Three of your group can swim; you have a car with a tow rope, a bamboo pole from a nearby field, and there are two villagers with a charpoy. A bridge crosses the canal four hundred metres downstream and the water narrows there. The nearest rescue station is eleven kilometres away. There is mobile signal. The bank is steep and slippery where the bus went in, and a crowd from the village is arriving.`,
+    narrativeUr: `آپ سات افراد صبح ساڑھے چھ بجے نہر کے کنارے والی سڑک پر ہیں کہ آپ کے آگے ایک منی بس بے قابو ہو کر نہر میں جا گرتی ہے۔ وہ تقریباً پندرہ میٹر دور نیچی سطح پر تیر رہی ہے اور بہاؤ اُسے آہستہ آہستہ نیچے کی طرف لے جا رہا ہے۔ آپ کو کھڑکیوں پر مسافر دکھائی دے رہے ہیں؛ بس میں عموماً بیس کے قریب افراد ہوتے ہیں۔ دو آدمی پہلے ہی نکل کر کنارے کی طرف تیر رہے ہیں۔ آپ کے گروپ کے تین افراد تیرنا جانتے ہیں؛ آپ کے پاس ٹو رسی والی گاڑی، قریبی کھیت سے ایک بانس، اور دو گاؤں والے چارپائی کے ساتھ موجود ہیں۔ چار سو میٹر نیچے ایک پُل نہر کو عبور کرتا ہے اور وہاں پانی تنگ ہو جاتا ہے۔ قریب ترین ریسکیو اسٹیشن گیارہ کلومیٹر دور ہے۔ موبائل سگنل موجود ہے۔ جہاں بس گری ہے وہاں کنارہ کھڑا اور پھسلنا ہے، اور گاؤں سے ہجوم پہنچ رہا ہے۔`,
+    problems: [
+      'About twenty people are inside a bus that is sinking and drifting.',
+      'The bank where it went in is steep and slippery and cannot be worked from.',
+      'The current is carrying the bus away from everyone standing on the road.',
+      'Rescue services are eleven kilometres away.',
+    ],
+    modelPlan: [
+      'Send two people ahead to the bridge four hundred metres downstream with the tow rope and the bamboo. The water narrows there and the bus is coming to them; it is the only place on this canal where a handful of people can reach a drifting vehicle.',
+      'Call Rescue 1122 and give the canal name and the bridge as the meeting point, not the place where it went in. Sending the rescue team to where the accident started sends them to where the bus no longer is.',
+      'Put the swimmers in the water only with the charpoy or the pole and only from the shallower bank below the steep section. A swimmer who reaches a window and has nothing to put a passenger onto has achieved nothing.',
+      'Give the arriving villagers the rope to hold in a line along the bank downstream. Twenty people who may come out of the bus one at a time need twenty pairs of hands spread along the water, not clustered at one point.',
+      'Count and name everyone brought out, and ask the two men who escaped how many were aboard. The number is the only way to know when the rescue is finished, and they are the only people who can tell you.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-30',
+    titleEn: 'Machinery breakdown at harvest',
+    titleUr: 'کٹائی کے وقت مشین کی خرابی',
+    narrativeEn: `You are five students helping a farmers' cooperative during the wheat harvest. At 9 a.m. the hired combine harvester breaks a belt in the middle of a ninety-acre block, and the dealer says a replacement belt can be at the road head by 3 p.m. if someone collects it from a town thirty kilometres away. The weather forecast, which has been right all week, gives heavy rain from tomorrow morning; wheat left standing will be flattened and lost. The cooperative has fourteen labourers with sickles, two tractors, one trolley, a thresher that works but is slow, and a village of about sixty families who have helped at harvest before. Two of the fourteen labourers have gone home for a funeral. There is mobile signal. The nearest other combine is working twelve kilometres away and its owner is willing to come tomorrow, but not today.`,
+    narrativeUr: `آپ پانچ طلبہ گندم کی کٹائی کے دوران ایک کسان کوآپریٹو کی مدد کر رہے ہیں۔ صبح نو بجے کرائے کی کمبائن ہارویسٹر کی بیلٹ نوے ایکڑ کے بلاک کے وسط میں ٹوٹ جاتی ہے، اور ڈیلر کہتا ہے کہ اگر کوئی تیس کلومیٹر دور قصبے سے لے آئے تو نئی بیلٹ سہ پہر تین بجے تک سڑک کے سرے پر پہنچ سکتی ہے۔ موسم کی پیش گوئی، جو پورا ہفتہ درست رہی ہے، کل صبح سے شدید بارش بتا رہی ہے؛ کھڑی رہ جانے والی گندم بچھ جائے گی اور ضائع ہو جائے گی۔ کوآپریٹو کے پاس درانتیوں کے ساتھ چودہ مزدور، دو ٹریکٹر، ایک ٹرالی، ایک تھریشر جو چلتا تو ہے مگر سست ہے، اور تقریباً ساٹھ گھرانوں کا گاؤں ہے جو پہلے بھی کٹائی میں مدد کر چکا ہے۔ چودہ میں سے دو مزدور جنازے کے لیے گھر چلے گئے ہیں۔ موبائل سگنل موجود ہے۔ قریب ترین دوسری کمبائن بارہ کلومیٹر دور کام کر رہی ہے اور اُس کا مالک کل آنے کو تیار ہے، آج نہیں۔`,
+    problems: [
+      'Ninety acres of wheat must be cut before rain tomorrow morning.',
+      'The only machine is down for at least six hours.',
+      'The labour force is short by two and the alternative combine will not come today.',
+      'Every hour spent deciding is an hour of daylight not spent cutting.',
+    ],
+    modelPlan: [
+      'Send one person for the belt on a tractor or motorcycle immediately. Six hours of harvester time is worth more than anything else today, and the clock on it only starts when somebody leaves.',
+      'Put all twelve labourers onto sickles now, starting from the far edge of the block. Hand cutting will not clear ninety acres, but what it clears is wheat that is definitely saved, and it costs nothing to start while waiting.',
+      'Send two of your group to the village to ask the sixty families for help this afternoon, with a clear share offered. Sixty households is the only labour force large enough to matter here, and they will not appear unless somebody goes and asks.',
+      'Cut the low-lying parts of the block first, not the nearest. That is where water will stand and where flattened wheat cannot be recovered at all; the high ground will still be cuttable after rain.',
+      "Accept the second combine for tomorrow and say so now, rather than hoping. It is not a rescue, but knowing that a machine arrives tomorrow changes today's decision from saving everything to choosing what to save first.",
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-31',
+    titleEn: 'Protest blocks the ambulance route',
+    titleUr: 'احتجاج سے ایمبولینس کا راستہ بند',
+    narrativeEn: `You are six volunteers running a first-aid post at a public event when a protest closes the main road at 5 p.m. An ambulance carrying a woman in obstructed labour is stuck in the queue two hundred metres from your post; the driver says the district hospital is nine kilometres ahead and the woman has been in labour eleven hours. The protest leaders are at the front of the blockade and are negotiating with a magistrate. There is a service lane behind the shops that rejoins the road past the blockade, but it is narrow and blocked by parked motorcycles and a fruit cart. A lady health visitor is among the crowd at your post. Traffic police are present but thin on the ground. It is Friday evening and the crowd is growing. There is mobile signal and the hospital's number is known.`,
+    narrativeUr: `آپ چھ رضاکار ایک عوامی تقریب میں ابتدائی طبی امداد کا مرکز چلا رہے ہیں کہ شام پانچ بجے ایک احتجاج مرکزی سڑک بند کر دیتا ہے۔ زچگی کی پیچیدگی میں مبتلا ایک خاتون کو لے جانے والی ایمبولینس آپ کے مرکز سے دو سو میٹر دور قطار میں پھنسی ہے؛ ڈرائیور کہتا ہے کہ ضلعی ہسپتال نو کلومیٹر آگے ہے اور خاتون گیارہ گھنٹے سے درد میں ہے۔ احتجاج کے رہنما ناکہ بندی کے سامنے موجود ہیں اور ایک مجسٹریٹ سے بات چیت کر رہے ہیں۔ دکانوں کے پیچھے ایک سروس لین ہے جو ناکہ بندی سے آگے سڑک سے مل جاتی ہے، مگر وہ تنگ ہے اور کھڑی موٹر سائیکلوں اور پھلوں کی ریڑھی سے بند ہے۔ ہجوم میں ایک لیڈی ہیلتھ وزیٹر بھی موجود ہے۔ ٹریفک پولیس موجود ہے مگر تعداد میں کم۔ جمعہ کی شام ہے اور ہجوم بڑھ رہا ہے۔ موبائل سگنل ہے اور ہسپتال کا نمبر معلوم ہے۔`,
+    problems: [
+      'A woman in obstructed labour is eleven hours in and nine kilometres from a hospital.',
+      'The main road is closed and the crowd is growing.',
+      'The only bypass is blocked by parked vehicles and a cart.',
+      'Nobody at the hospital knows she is coming.',
+    ],
+    modelPlan: [
+      'Phone the hospital now, describe the case and say she is delayed. Obstructed labour needs a theatre ready, and a hospital told at five prepares while she travels instead of starting when she arrives.',
+      'Send three volunteers to clear the service lane: move the motorcycles, move the cart, and get the traffic police to hold it open one way. Clearing two hundred metres of lane is a task this group can actually finish, unlike ending a protest.',
+      'Send one person to the protest leaders and the magistrate with a single, specific request: a corridor for one ambulance. Protests almost always grant that; they refuse vague demands to disperse, which is what an argument turns into.',
+      'Ask the lady health visitor to go to the ambulance and stay with the woman. Eleven hours of labour in a stationary ambulance needs someone qualified beside her, and she is standing thirty metres away.',
+      'If neither route opens within fifteen minutes, ask the police for a motorcycle escort and reverse the ambulance to the last junction for the long way round. Set that deadline now, before it is needed; a decision to turn back made at six is worth far less than the same decision made at five fifteen.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-32',
+    titleEn: 'Storm damage at the school',
+    titleUr: 'اسکول میں طوفان سے نقصان',
+    narrativeEn: `You are eight teachers and volunteers at a rural school at 10 a.m. when a windstorm tears off part of the tin roof over two classrooms. Sheets have fallen in the veranda and one has cut a boy's arm badly; he is bleeding and frightened. There are two hundred and sixty children on the premises, mostly now in the open yard, and more sheets are lifting at the edges in the continuing wind. Three classrooms are undamaged. The school has a first-aid box, a bell, a boundary wall with one gate, and a phone in the office. Parents have begun arriving at the gate and are pushing in to find their children. The nearest clinic is seven kilometres away and the school van has a driver. Electricity wires run along the boundary and one sheet is resting against them.`,
+    narrativeUr: `آپ آٹھ اساتذہ اور رضاکار صبح دس بجے ایک دیہی اسکول میں ہیں کہ آندھی دو کمروں کی ٹین کی چھت کا کچھ حصہ اُکھاڑ دیتی ہے۔ چادریں برآمدے میں گر چکی ہیں اور ایک سے ایک لڑکے کا بازو بری طرح کٹ گیا ہے؛ اُس سے خون بہہ رہا ہے اور وہ خوفزدہ ہے۔ احاطے میں دو سو ساٹھ بچے ہیں جو زیادہ تر اب کھلے صحن میں ہیں، اور مسلسل ہوا میں مزید چادریں کناروں سے اُٹھ رہی ہیں۔ تین کمرے محفوظ ہیں۔ اسکول میں ابتدائی طبی امداد کا بکس، ایک گھنٹی، ایک گیٹ والی چاردیواری، اور دفتر میں فون موجود ہے۔ والدین گیٹ پر پہنچنا شروع ہو گئے ہیں اور اپنے بچوں کو ڈھونڈنے کے لیے اندر گھس رہے ہیں۔ قریب ترین کلینک سات کلومیٹر دور ہے اور اسکول کی وین ڈرائیور سمیت موجود ہے۔ چاردیواری کے ساتھ بجلی کی تاریں گزرتی ہیں اور ایک چادر اُن سے ٹکی ہوئی ہے۔`,
+    problems: [
+      'A tin sheet is resting against live electricity wires.',
+      'A boy has a serious bleeding arm wound seven kilometres from a clinic.',
+      'Loose sheets are still lifting over a yard full of children.',
+      'Parents rushing the gate will make an accurate count impossible.',
+    ],
+    modelPlan: [
+      'Get every child away from the boundary wall and the loose roof edge, into the three undamaged classrooms or the far corner of the yard, and keep them there. A yard is not safe just because it is outdoors when sheet metal is flying.',
+      'Phone the electricity office to have the line shut off, and post someone to keep everyone away from that stretch of wall until it is. A tin sheet on a live wire is the thing here most likely to kill somebody, and it cannot be dealt with by hand.',
+      "Put firm pressure on the boy's arm with the first-aid box and send him in the school van to the clinic with a teacher. Do not wait to see whether the bleeding settles; a deep cut from a tin edge does not settle, and seven kilometres takes time.",
+      'Close the gate and set two teachers to release children to parents by name, from a class register, one at a time. Two hundred and sixty children and a crowd of frightened parents is how a child ends up counted as missing who is merely already at home.',
+      'Send one person around the two damaged classrooms to check that no child is inside before anyone else is allowed near them, and mark the doors once checked.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-33',
+    titleEn: 'Dengue outbreak in the town',
+    titleUr: 'قصبے میں ڈینگی کی وبا',
+    narrativeEn: `You are nine volunteers in a town of about twelve thousand where the health officer reports sixty confirmed dengue cases in ten days, rising. The town hospital has thirty beds and is already full; four patients are on the floor. The main breeding sites identified are an abandoned construction site with standing water, roof tanks in the old bazaar left uncovered, and a blocked drain along the railway line. The health office has fogging equipment but only one operator and fuel for three days. There is a supply of larvicide but no distribution plan. Local opinion in the bazaar is that fogging is harmful and several shopkeepers turned the team away last week. A daily newspaper and two mosque loudspeakers reach most of the town. Platelet supply for severe cases comes from the district blood bank, forty kilometres away.`,
+    narrativeUr: `آپ نو رضاکار تقریباً بارہ ہزار آبادی کے قصبے میں ہیں جہاں محکمہ صحت کے افسر نے دس دن میں ڈینگی کے ساٹھ تصدیق شدہ کیس رپورٹ کیے ہیں اور تعداد بڑھ رہی ہے۔ قصبے کے ہسپتال میں تیس بستر ہیں اور وہ پہلے ہی بھرا ہوا ہے؛ چار مریض فرش پر ہیں۔ افزائش کے بڑے مقامات کے طور پر ایک متروک زیرِ تعمیر جگہ جہاں پانی کھڑا ہے، پرانے بازار میں بغیر ڈھکن کے چھت کے ٹینک، اور ریلوے لائن کے ساتھ ایک بند نالہ شناخت ہوئے ہیں۔ محکمہ صحت کے پاس فوگنگ کا سامان ہے مگر صرف ایک آپریٹر اور تین دن کا ایندھن ہے۔ لاروا کش دوا موجود ہے مگر تقسیم کا کوئی منصوبہ نہیں۔ بازار میں عام رائے یہ ہے کہ فوگنگ نقصان دہ ہے اور پچھلے ہفتے کئی دکانداروں نے ٹیم کو واپس بھیج دیا تھا۔ ایک روزنامہ اور دو مساجد کے لاؤڈ اسپیکر قصبے کے بیشتر حصے تک پہنچتے ہیں۔ شدید کیسوں کے لیے پلیٹ لیٹس چالیس کلومیٹر دور ضلعی بلڈ بینک سے آتے ہیں۔`,
+    problems: [
+      'Cases are rising and the hospital is already over capacity.',
+      'Three known breeding sites remain untreated.',
+      'The bazaar is refusing the fogging team.',
+      'Severe cases need platelets from forty kilometres away.',
+    ],
+    modelPlan: [
+      'Treat the three known breeding sites with larvicide first, before any fogging. Fogging kills adult mosquitoes for a day; removing standing water stops the next generation, and three named sites is a job nine people can finish this week.',
+      "Send two volunteers to the bazaar traders' association rather than to individual shopkeepers, and ask them to announce the roof-tank covering themselves. Refusal in a bazaar is collective, so agreement has to be collective too; a team arguing shop by shop will lose every day.",
+      'Use the mosque loudspeakers and the newspaper for two specific instructions — cover roof tanks, empty standing water weekly — rather than general awareness. A town of twelve thousand can be told two things and will remember them; ten things reach nobody.',
+      'Arrange a standing platelet link with the district blood bank now: a named contact, a vehicle and a donor list from the college. The first severe case is the wrong moment to discover the round trip is two hours.',
+      "Ask the health officer to set up an overflow ward in a school or community hall with the hospital's guidance. Patients on the floor is a sign the hospital passed capacity days ago, and the extra space has to be found before the next twenty cases, not after.",
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-34',
+    titleEn: 'Grain store fire',
+    titleUr: 'غلہ گودام میں آگ',
+    narrativeEn: `You are seven people at a cooperative grain store at 2 a.m. when fire breaks out in the far corner of the main shed. The shed holds about nine hundred bags of wheat and is attached by a shared wall to a fertiliser store containing bagged urea and two drums of diesel. A watchman with burns to his hands has come out and says nobody else was inside. The compound has a water tank with a pump run by an electric motor, about forty empty sacks, a tractor, and a boundary wall with one gate wide enough for a fire engine. The fire brigade is twenty-two kilometres away and says thirty-five minutes. There is a village two hundred metres upwind with about eighty houses. Wind is light and blowing from the shed towards the village. There is mobile signal.`,
+    narrativeUr: `آپ سات افراد رات دو بجے ایک کوآپریٹو غلہ گودام پر ہیں کہ مرکزی شیڈ کے دور والے کونے میں آگ بھڑک اٹھتی ہے۔ شیڈ میں تقریباً نو سو بوری گندم ہے اور وہ ایک مشترکہ دیوار کے ذریعے کھاد کے گودام سے جڑا ہے جس میں یوریا کی بوریاں اور ڈیزل کے دو ڈرم رکھے ہیں۔ ہاتھوں پر جلنے کے زخموں کے ساتھ ایک چوکیدار باہر آیا ہے اور کہتا ہے کہ اندر کوئی اور نہیں تھا۔ احاطے میں بجلی کی موٹر سے چلنے والے پمپ کے ساتھ پانی کا ٹینک، تقریباً چالیس خالی بوریاں، ایک ٹریکٹر، اور ایک چاردیواری ہے جس کا گیٹ فائر انجن کے لیے کافی چوڑا ہے۔ فائر بریگیڈ بائیس کلومیٹر دور ہے اور پینتیس منٹ بتاتا ہے۔ دو سو میٹر دور ہوا کے رخ پر تقریباً اَسی گھروں کا ایک گاؤں ہے۔ ہوا ہلکی ہے اور شیڈ سے گاؤں کی طرف چل رہی ہے۔ موبائل سگنل موجود ہے۔`,
+    problems: [
+      'Fire is spreading towards a shared wall with a fertiliser and diesel store.',
+      'The fire brigade is thirty-five minutes away.',
+      'Smoke is drifting towards a sleeping village of eighty houses.',
+      'The watchman has burns and nobody has checked whether anyone else is inside.',
+    ],
+    modelPlan: [
+      'Call the fire brigade and tell them there is urea and diesel next door. It changes what they bring and how they approach, and it is the single most important sentence anyone says tonight.',
+      'Move the two diesel drums out of the fertiliser store and well away, if the store is still cool enough to enter. Two drums is a ten-minute job for four people and it removes the thing that would turn a shed fire into an explosion.',
+      'Put the pump on wetting the shared wall and the fertiliser store, not on the burning corner. Nine hundred bags of wheat cannot be saved by a farm pump; the store next to it can be, and that is where limited water goes.',
+      'Send one person to wake the village, tell them smoke is coming and to keep children and the asthmatic indoors with windows shut. Eighty houses asleep downwind of a burning store is a problem that solves itself if somebody knocks, and does not if nobody does.',
+      "Treat the watchman's hands with cool running water and keep him there for the ambulance, and get a second person to confirm from outside that the shed is empty. Send nobody back inside to check.",
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-35',
+    titleEn: 'Bridge washed out before the paper',
+    titleUr: 'پرچے سے پہلے پُل بہہ گیا',
+    narrativeEn: `You are eight students in a valley village. At 6 a.m. you learn that last night's flood has taken out the footbridge — the only link to the road on the far bank. Fourteen students from the village, including four of your group, have a board examination in the town at 9 a.m.; the examination centre is twelve kilometres beyond the far bank and there is a van waiting there. The river is running fast and brown, about twenty metres wide at the bridge site, but narrows to eight metres at a rocky section six hundred metres upstream where a plank could be laid. An elderly man on the far bank is signalling. The village has ropes, two long planks, and a tractor. A woman in the village is due to deliver and had planned to go to the town clinic today. There is weak mobile signal on the ridge.`,
+    narrativeUr: `آپ آٹھ طلبہ ایک وادی کے گاؤں میں ہیں۔ صبح چھ بجے آپ کو معلوم ہوتا ہے کہ رات کے سیلاب نے پیدل پُل بہا دیا ہے — جو دوسرے کنارے کی سڑک تک واحد رابطہ تھا۔ گاؤں کے چودہ طلبہ، جن میں آپ کے گروپ کے چار شامل ہیں، کا قصبے میں نو بجے بورڈ کا امتحان ہے؛ امتحانی مرکز دوسرے کنارے سے بارہ کلومیٹر آگے ہے اور وہاں ایک وین انتظار میں ہے۔ دریا تیز اور گدلا بہہ رہا ہے، پُل والی جگہ پر تقریباً بیس میٹر چوڑا، مگر چھ سو میٹر اوپر ایک پتھریلے حصے پر آٹھ میٹر رہ جاتا ہے جہاں تختہ ڈالا جا سکتا ہے۔ دوسرے کنارے پر ایک بزرگ اشارے کر رہا ہے۔ گاؤں میں رسیاں، دو لمبے تختے، اور ایک ٹریکٹر موجود ہے۔ گاؤں کی ایک خاتون کی زچگی متوقع ہے اور اُس نے آج قصبے کے کلینک جانے کا ارادہ کیا تھا۔ پہاڑی کی دھار پر کمزور موبائل سگنل ہے۔`,
+    problems: [
+      'Fourteen students have a fixed examination in three hours with no crossing.',
+      'A woman near delivery has lost her only route to a clinic.',
+      'The narrow crossing is improvised and the river is in flood.',
+      'Nobody on the far bank or in the town knows the bridge is gone.',
+    ],
+    modelPlan: [
+      'Send two people to the ridge for signal: call the examination centre about fourteen candidates, the van driver to move to the upstream crossing, and the clinic about the expecting mother. One trip, three calls, and every one of them buys time that cannot be bought later.',
+      'Build the plank crossing at the eight-metre rocky section with ropes fixed both sides and a hand line, not a single plank laid across. It takes twenty minutes longer and it is the difference between a crossing and a drowning.',
+      'Cross the students in pairs, roped, with the strongest swimmers stationed downstream. Fourteen candidates crossing one at a time without a safety line is fourteen chances to lose somebody for the sake of a paper.',
+      'Do not attempt to bring the expecting mother across the planks. Get a message to the clinic instead, ask for a lady health visitor or a midwife to come to the far bank, and identify the two most experienced women in the village to attend her meanwhile.',
+      'Leave a marked, roped route and two people at the crossing for the rest of the day. The bridge will not be rebuilt today and the village will keep needing to get across; an organised crossing is safer than fourteen people improvising one each.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-36',
+    titleEn: 'Camp hit by stomach illness',
+    titleUr: 'کیمپ میں پیٹ کی بیماری',
+    narrativeEn: `You are six organisers of a youth camp of a hundred and twenty participants at a remote site. On the third morning, thirty-one participants have diarrhoea and vomiting and four are visibly dehydrated. The camp draws water from a stream through a filter that a volunteer admits was not changed after the rain two days ago. The camp has oral rehydration salts for about forty doses, a small stock of medicines, four latrines of which two are overflowing, and a kitchen serving from one common pot. The nearest health facility is nineteen kilometres on a rough track; the camp has one bus and one jeep. Parents are due to visit tomorrow. It is 8 a.m. and the day's programme, including a long hike, is scheduled to start at nine. There is mobile signal at the camp office.`,
+    narrativeUr: `آپ چھ منتظم ایک دور افتادہ مقام پر ایک سو بیس شرکاء کے یوتھ کیمپ کے ذمہ دار ہیں۔ تیسری صبح اکتیس شرکاء کو دست اور قے ہے اور چار میں پانی کی کمی واضح ہے۔ کیمپ ایک فلٹر کے ذریعے ندی سے پانی لیتا ہے، اور ایک رضاکار تسلیم کرتا ہے کہ دو دن پہلے بارش کے بعد فلٹر تبدیل نہیں کیا گیا۔ کیمپ میں تقریباً چالیس خوراکوں کے لیے او آر ایس، ادویات کا معمولی ذخیرہ، چار بیت الخلاء جن میں سے دو بھر چکے ہیں، اور ایک مشترکہ دیگ سے کھانا دینے والا باورچی خانہ ہے۔ قریب ترین طبی مرکز اُنیس کلومیٹر دور کچی سڑک پر ہے؛ کیمپ میں ایک بس اور ایک جیپ ہے۔ کل والدین کی آمد متوقع ہے۔ صبح آٹھ بجے ہیں اور دن کا پروگرام، جس میں ایک طویل پیدل سفر شامل ہے، نو بجے شروع ہونا ہے۔ کیمپ کے دفتر میں موبائل سگنل ہے۔`,
+    problems: [
+      'A third of the camp is ill and the source is still in use.',
+      'Four participants are dehydrated nineteen kilometres from a clinic.',
+      'Two overflowing latrines will spread it further.',
+      'A long hike is due to start in an hour.',
+    ],
+    modelPlan: [
+      'Shut off the stream supply and switch the whole camp to boiled water before anybody drinks again this morning. The outbreak continues as long as the source does, and every other measure is treating a tap that is still running.',
+      'Cancel the hike and say so publicly at breakfast with the reason. A hundred and twenty young people walking all day on a suspect water supply is how thirty-one cases become eighty, and a cancellation announced clearly avoids an hour of arguing.',
+      'Start oral rehydration salts for everyone with symptoms, not only the worst four, and ration by need. ORS is the treatment, forty doses is not enough for thirty-one people over a day, so someone has to decide the order now and send the jeep for more.',
+      'Send the four dehydrated participants to the health facility in the jeep with an organiser, and phone ahead. Dehydration in the young goes from tired to serious faster than it looks, and nineteen kilometres of rough track is not a trip to start at noon.',
+      'Close the two overflowing latrines, dig or site replacements away from the water line, and put soap and boiled water at every eating point. Then phone the parents today rather than letting them arrive tomorrow to the news.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-37',
+    titleEn: 'Stranded tourists after the road closure',
+    titleUr: 'سڑک بند ہونے کے بعد پھنسے سیاح',
+    narrativeEn: `You are seven members of a local rescue volunteer group in a hill town at 7 p.m. A landslide has closed the only road down, and about two hundred tourists in forty cars are stranded between the slide and the town, four kilometres out. It is snowing lightly and the temperature is below freezing. Many cars have families with children and a few have elderly passengers; fuel in most cars is low and people are running engines for heat. Two people have reported chest discomfort. The town has a community hall that holds a hundred and fifty, a school, a hotel with twenty rooms mostly full, a tea shop, and a dispensary. Road clearance is estimated at eighteen hours. The town has four jeeps that can reach the stranded line. Mobile signal is patchy and the town has one working landline at the police post.`,
+    narrativeUr: `آپ ایک پہاڑی قصبے میں مقامی ریسکیو رضاکار گروپ کے سات ارکان ہیں، شام سات بجے۔ ایک لینڈ سلائیڈ نے نیچے جانے والی واحد سڑک بند کر دی ہے، اور تقریباً دو سو سیاح چالیس گاڑیوں میں سلائیڈ اور قصبے کے درمیان چار کلومیٹر دور پھنسے ہیں۔ ہلکی برف باری ہو رہی ہے اور درجہ حرارت نقطۂ انجماد سے نیچے ہے۔ کئی گاڑیوں میں بچوں سمیت خاندان ہیں اور چند میں بزرگ مسافر؛ زیادہ تر گاڑیوں میں ایندھن کم ہے اور لوگ گرمی کے لیے انجن چلا رہے ہیں۔ دو افراد نے سینے میں تکلیف کی شکایت کی ہے۔ قصبے میں ایک کمیونٹی ہال ہے جس میں ڈیڑھ سو افراد سما سکتے ہیں، ایک اسکول، بیس کمروں کا ایک ہوٹل جو زیادہ تر بھرا ہے، ایک چائے کی دکان، اور ایک ڈسپنسری ہے۔ سڑک کھلنے میں اٹھارہ گھنٹے کا تخمینہ ہے۔ قصبے کی چار جیپیں پھنسی ہوئی قطار تک پہنچ سکتی ہیں۔ موبائل سگنل ٹوٹتا ہے اور قصبے میں پولیس چوکی پر ایک چلتی ہوئی لینڈ لائن ہے۔`,
+    problems: [
+      'Two hundred people face a freezing night in cars four kilometres from shelter.',
+      'People running engines for heat risk carbon monoxide and will run out of fuel.',
+      'Two possible cardiac cases are among them.',
+      'Shelter in town is less than the number of people stranded.',
+    ],
+    modelPlan: [
+      'Send the four jeeps out at once and bring people in by priority: the two with chest discomfort first, then children, the elderly and anyone poorly dressed. Four kilometres each way means several hours of shuttling, so the order has to be fixed before the first jeep leaves.',
+      'Warn every car, as the jeeps pass, not to sleep with the engine running and to clear snow from the exhaust. Carbon monoxide kills more people in stranded-car nights than cold does, and the warning costs one sentence per car.',
+      'Open the community hall and the school before people arrive, with the tea shop asked to keep hot drinks going. Two hundred people arriving at a locked hall is a crowd; arriving at a warm one is a shelter.',
+      'Use the police landline to report the closure and the numbers to the district administration and the highway authority, and ask specifically for blankets and the clearance timing. Patchy mobile signal means the one reliable line should be used for the messages that matter, not left idle.',
+      'Take names and vehicle numbers as people come in, and leave one volunteer at the stranded line to keep a list of who stayed with their cars. By morning somebody will ask who is still out there, and only a list can answer.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-38',
+    titleEn: 'Electrocution risk in the flooded lane',
+    titleUr: 'زیرِ آب گلی میں بجلی کا خطرہ',
+    narrativeEn: `You are six residents of a low-lying urban neighbourhood at 9 p.m. after three hours of rain. Water is knee-deep in the lane. A pole-mounted transformer at the corner is sparking and a live cable has come down into the water at the far end of the lane, thirty metres away. A boy of about twelve is standing on a parked car roof in the middle of the lane, cut off and frightened. Three houses have water entering and their occupants are wading out. Two people are walking towards the fallen cable without seeing it. Electricity complaint lines are engaged. The neighbourhood has a mosque with a loudspeaker, several charpoys and bamboo poles, and a shopkeeper with a long wooden ladder. The nearest grid station is one and a half kilometres away and can be reached on foot in fifteen minutes.`,
+    narrativeUr: `آپ چھ رہائشی تین گھنٹے کی بارش کے بعد رات نو بجے ایک نشیبی شہری محلے میں ہیں۔ گلی میں پانی گھٹنوں تک ہے۔ نکڑ پر کھمبے والا ٹرانسفارمر چنگاریاں دے رہا ہے اور گلی کے دوسرے سرے پر تیس میٹر دور ایک زندہ تار پانی میں گر چکی ہے۔ تقریباً بارہ سال کا ایک لڑکا گلی کے وسط میں کھڑی گاڑی کی چھت پر کھڑا ہے، کٹا ہوا اور خوفزدہ۔ تین گھروں میں پانی داخل ہو رہا ہے اور اُن کے مکین پانی میں چل کر نکل رہے ہیں۔ دو افراد گری ہوئی تار کو دیکھے بغیر اُس کی طرف بڑھ رہے ہیں۔ بجلی کی شکایت کی لائنیں مصروف ہیں۔ محلے میں لاؤڈ اسپیکر والی ایک مسجد، کئی چارپائیاں اور بانس، اور ایک دکاندار کے پاس لمبی لکڑی کی سیڑھی موجود ہے۔ قریب ترین گرڈ اسٹیشن ڈیڑھ کلومیٹر دور ہے اور پیدل پندرہ منٹ میں پہنچا جا سکتا ہے۔`,
+    problems: [
+      'A live cable is lying in standing water that people are wading through.',
+      'Two people are walking towards it unaware.',
+      'A boy is stranded on a car roof in the middle of the flooded lane.',
+      'The complaint line is engaged and the grid station is fifteen minutes on foot.',
+    ],
+    modelPlan: [
+      'Shout and physically turn back the two people heading for the cable, and do it before anything else. Seconds matter and nothing else on this list is reversible if you are too late.',
+      'Send two people running to the grid station to have the feeder switched off. The complaint line is engaged and will stay engaged; the only reliable way to make this lane safe is a person standing in front of the operator.',
+      'Get the mosque loudspeaker to announce it: live wire in the lane, nobody in the water, stay indoors or on high steps. One announcement reaches every house at once and keeps people out of the water while you deal with the rest.',
+      'Leave the boy on the car roof and tell him, loudly and calmly, to stay exactly where he is. He is dry, insulated and safe where he stands, and wading out to fetch him before the power is off risks two lives instead of none.',
+      'Once the feeder is confirmed dead, bring the boy out with the ladder or charpoys laid flat, and then help the three flooded households. Confirmed dead means somebody at the grid station said so — not that the sparking stopped.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-39',
+    titleEn: 'Crowd surge at the vaccination camp',
+    titleUr: 'ویکسینیشن کیمپ میں ہجوم کا دباؤ',
+    narrativeEn: `You are eight volunteers running a one-day vaccination camp in a school compound. By 10 a.m. about nine hundred people have arrived for four hundred doses and the queue has collapsed into a crowd pressing at the single gate. Two women have fainted in the crush and an elderly man has fallen. The camp has one doctor, three vaccinators, a registration desk, a shaded veranda, a second gate at the rear that is closed, and a loudspeaker. Police have not arrived. Word has spread that the camp closes at noon, which is not true — it runs to four. There are no tokens or numbered slips, and the crowd includes people who have come from villages twenty kilometres away. More doses can be brought from the district store by 1 p.m. if requested now. There is mobile signal.`,
+    narrativeUr: `آپ آٹھ رضاکار ایک اسکول کے احاطے میں ایک روزہ ویکسینیشن کیمپ چلا رہے ہیں۔ صبح دس بجے تک چار سو خوراکوں کے لیے تقریباً نو سو افراد پہنچ چکے ہیں اور قطار ٹوٹ کر ایک ہجوم بن گئی ہے جو واحد گیٹ پر دباؤ ڈال رہا ہے۔ دباؤ میں دو خواتین بے ہوش ہو چکی ہیں اور ایک بزرگ گر گیا ہے۔ کیمپ میں ایک ڈاکٹر، تین ویکسینیٹر، ایک رجسٹریشن ڈیسک، ایک سایہ دار برآمدہ، پیچھے ایک بند گیٹ، اور ایک لاؤڈ اسپیکر ہے۔ پولیس نہیں پہنچی۔ یہ بات پھیل گئی ہے کہ کیمپ دوپہر بارہ بجے بند ہو جائے گا، جو درست نہیں — یہ چار بجے تک چلے گا۔ کوئی ٹوکن یا نمبر والی پرچیاں نہیں ہیں، اور ہجوم میں وہ لوگ بھی ہیں جو بیس کلومیٹر دور گاؤں سے آئے ہیں۔ اگر ابھی درخواست کی جائے تو ضلعی اسٹور سے مزید خوراکیں ایک بجے تک آ سکتی ہیں۔ موبائل سگنل موجود ہے۔`,
+    problems: [
+      'Nine hundred people are pressing at one gate for four hundred doses.',
+      'Three people are already casualties of the crush.',
+      'A false rumour about closing time is driving the surge.',
+      'Extra doses are available only if requested in the next few hours.',
+    ],
+    modelPlan: [
+      "Announce on the loudspeaker, immediately and repeatedly, that the camp runs until four o'clock. The crush exists because people believe they have two hours; correcting that one fact takes the pressure off the gate faster than any barrier.",
+      'Get the three casualties out of the crush and onto the shaded veranda with the doctor. They are in the most danger of anyone here and they are being trampled while everybody looks at the queue.',
+      "Request the extra doses from the district store now, by phone, before the morning is over. Four hundred doses for nine hundred people is the underlying problem, and the one window to fix it closes at one o'clock.",
+      'Open the rear gate and split the flow: registration at one gate, vaccination exit at the other, with numbered slips issued from the back of the crowd forwards. A numbered slip is what turns a crowd into a queue, and issuing from the back first rewards the people who have waited longest.',
+      'Phone for police help and, while waiting, use volunteers and rope or benches to make a single-file channel at each gate. Crowd injuries happen at pinch points, and a channel two people wide is the cheapest barrier there is.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-40',
+    titleEn: 'Sandstorm on the desert highway',
+    titleUr: 'صحرائی شاہراہ پر آندھی',
+    narrativeEn: `Your group of six is driving two cars on a desert highway at 3 p.m. when a sandstorm reduces visibility to about ten metres. You stop on the shoulder. Behind you there is the sound of a collision, and walking back you find a pickup has hit the rear of a stationary lorry; the pickup driver is trapped by the steering column, conscious, and a passenger has a head wound and is wandering on the road. Traffic is still moving past at speed through the dust. You have two cars with hazard lights, a first-aid kit, three bottles of water, a torch and a reflective triangle. Mobile signal is intermittent. The nearest town is thirty-four kilometres ahead and there is a highway police post about eleven kilometres back. The storm is forecast to last an hour. Visibility means any approaching vehicle will see you very late.`,
+    narrativeUr: `آپ کا چھ افراد کا گروپ سہ پہر تین بجے دو گاڑیوں میں صحرائی شاہراہ پر سفر کر رہا ہے کہ آندھی سے حد نگاہ تقریباً دس میٹر رہ جاتی ہے۔ آپ کنارے پر رُک جاتے ہیں۔ پیچھے ٹکراؤ کی آواز آتی ہے، اور واپس جا کر آپ دیکھتے ہیں کہ ایک پک اَپ کھڑے ہوئے ٹرک کے پچھلے حصے سے ٹکرا گئی ہے؛ پک اَپ کا ڈرائیور اسٹیئرنگ میں پھنسا ہے، ہوش میں ہے، اور ایک مسافر کے سر پر زخم ہے اور وہ سڑک پر بھٹک رہا ہے۔ ٹریفک اب بھی گرد میں تیز رفتاری سے گزر رہی ہے۔ آپ کے پاس ہیزرڈ لائٹس والی دو گاڑیاں، ابتدائی طبی امداد کا بکس، تین بوتل پانی، ایک ٹارچ اور ایک ریفلیکٹو ٹرائی اینگل ہے۔ موبائل سگنل وقفے وقفے سے آتا ہے۔ قریب ترین قصبہ چونتیس کلومیٹر آگے ہے اور تقریباً گیارہ کلومیٹر پیچھے ہائی وے پولیس کی چوکی ہے۔ آندھی ایک گھنٹہ رہنے کی توقع ہے۔ کم حد نگاہ کا مطلب ہے کہ کوئی بھی آنے والی گاڑی آپ کو بہت دیر سے دیکھے گی۔`,
+    problems: [
+      'A wandering head-injured passenger is on a live carriageway in ten-metre visibility.',
+      'A driver is trapped in the pickup.',
+      'Traffic is still arriving at speed and cannot see the wreck.',
+      'Signal is intermittent and help is eleven kilometres back.',
+    ],
+    modelPlan: [
+      'Get the wandering passenger off the road and sit him down on the shoulder. He is the person most likely to die in the next two minutes, and he cannot be relied on to protect himself with a head injury.',
+      'Warn the traffic before treating anyone else: the triangle well back, both cars on the shoulder with hazards on, and one person a hundred metres upstream with the torch waving it low and across. The next vehicle into this wreck brings more casualties than the first one did.',
+      'Keep trying the call to the highway police, and if no signal holds within a few minutes, send one car back the eleven kilometres to the post. A message that cannot be sent has to be carried, and the decision to carry it should not wait half an hour.',
+      'Leave the trapped driver in place, support his head and neck, and talk to him. Without cutting gear, pulling him past a steering column risks an injury worse than the one he has.',
+      'Dress the head wound, keep both casualties out of the blown sand with a cloth or a jacket over the face, and give no water to the trapped man in case he needs surgery.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-41',
+    titleEn: 'Roof collapse in the rain',
+    titleUr: 'بارش میں چھت کا گرنا',
+    narrativeEn: `You are five volunteers in a katchi abadi at 4 a.m. during heavy rain when a mud roof collapses on a two-room house. Neighbours say a family of six was inside: the parents and two children have got out, the grandmother and a boy of seven have not. Rain is continuing and two neighbouring roofs are visibly sagging, with families still asleep under them. The lane is a metre wide and no vehicle can enter; the nearest point a vehicle can reach is ninety metres away. There is no street lighting and the area's electricity is off. About thirty neighbours have gathered with three torches between them and are pulling at the mud by hand. There is mobile signal. Rescue 1122 is fifteen minutes away. The mother is trying to go back into the debris and is being held back.`,
+    narrativeUr: `آپ پانچ رضاکار شدید بارش کے دوران صبح چار بجے ایک کچی آبادی میں ہیں کہ ایک دو کمروں کے گھر پر مٹی کی چھت گر جاتی ہے۔ پڑوسی بتاتے ہیں کہ اندر چھ افراد کا خاندان تھا: والدین اور دو بچے نکل آئے ہیں، دادی اور سات سالہ لڑکا نہیں نکلے۔ بارش جاری ہے اور دو پڑوسی چھتیں نمایاں طور پر جھک رہی ہیں، جن کے نیچے خاندان ابھی سو رہے ہیں۔ گلی ایک میٹر چوڑی ہے اور کوئی گاڑی اندر نہیں آ سکتی؛ گاڑی کے پہنچنے کا قریب ترین مقام نوے میٹر دور ہے۔ کوئی اسٹریٹ لائٹ نہیں اور علاقے کی بجلی بند ہے۔ تقریباً تیس پڑوسی آپس میں تین ٹارچیں لیے جمع ہیں اور ہاتھوں سے مٹی کھینچ رہے ہیں۔ موبائل سگنل موجود ہے۔ ریسکیو 1122 پندرہ منٹ کے فاصلے پر ہے۔ ماں ملبے میں واپس جانے کی کوشش کر رہی ہے اور اُسے روکا جا رہا ہے۔`,
+    problems: [
+      'Two people are buried under a collapsed mud roof in the rain.',
+      'Two neighbouring roofs are sagging over sleeping families.',
+      'No vehicle can reach the house and there is almost no light.',
+      'Thirty untrained people are digging in the dark.',
+    ],
+    modelPlan: [
+      'Call Rescue 1122 and send one person to the vehicle point ninety metres away to guide them in on foot. In a metre-wide unlit lane at four in the morning, a rescue team without a guide loses ten minutes finding the house.',
+      'Ask the parents exactly where the grandmother and the boy were sleeping, and mark that area. Thirty people digging the whole house is slower than ten digging the right corner, and only the family can tell you which corner.',
+      'Organise the diggers: hands and small tools only, no pulling on beams, a chain to pass debris back, and the three torches held by people whose only job is light. Wet mud is heavy and a beam pulled at random drops the rest of the roof on whoever is underneath.',
+      'Send two volunteers to wake the families under the two sagging roofs and get them out. It is the one preventable collapse tonight, and it will be forgotten entirely if somebody does not go now.',
+      "Keep the mother out of the debris by giving her a job at the edge — holding a torch, answering the rescuers' questions. She is the best source of information here and the worst possible person to have inside the dig.",
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-42',
+    titleEn: 'Fuel tanker leaking in the bazaar',
+    titleUr: 'بازار میں آئل ٹینکر سے رساؤ',
+    narrativeEn: `You are seven people in a busy bazaar at 11 a.m. when a fuel tanker taking a corner strikes a pillar and begins leaking petrol from a split near the rear valve. Fuel is running along the road and into the open drain that passes under the shops. The bazaar has about three hundred people in it and several tea stalls with lit stoves, the nearest twenty metres downhill from the spill. The tanker driver has run off. The road is one-way and vehicles are still entering behind the tanker. There is a police mobile at the end of the street. Fire brigade is eight minutes away. Shopkeepers are beginning to pull down shutters and a few are collecting the leaking fuel in cans. The drain runs for about four hundred metres under the whole bazaar block.`,
+    narrativeUr: `آپ سات افراد صبح گیارہ بجے ایک مصروف بازار میں ہیں کہ ایک آئل ٹینکر موڑ کاٹتے ہوئے ستون سے ٹکراتا ہے اور پچھلے والو کے قریب شگاف سے پٹرول رسنے لگتا ہے۔ ایندھن سڑک پر بہہ کر اُس کھلے نالے میں جا رہا ہے جو دکانوں کے نیچے سے گزرتا ہے۔ بازار میں تقریباً تین سو افراد ہیں اور کئی چائے کے کھوکھے ہیں جن کے چولہے جل رہے ہیں، سب سے قریبی رساؤ سے بیس میٹر نیچے کی طرف۔ ٹینکر کا ڈرائیور بھاگ گیا ہے۔ سڑک یک طرفہ ہے اور ٹینکر کے پیچھے گاڑیاں اب بھی داخل ہو رہی ہیں۔ گلی کے سرے پر پولیس موبائل موجود ہے۔ فائر بریگیڈ آٹھ منٹ کے فاصلے پر ہے۔ دکاندار شٹر گرانا شروع کر چکے ہیں اور کچھ رستا ہوا ایندھن کینوں میں جمع کر رہے ہیں۔ نالہ پورے بازار بلاک کے نیچے تقریباً چار سو میٹر تک جاتا ہے۔`,
+    problems: [
+      'Petrol is running into a drain that passes under four hundred metres of shops.',
+      'Lit tea stalls are twenty metres downhill of the spill.',
+      'People are collecting the fuel in cans at the source.',
+      'Vehicles are still entering the one-way street behind the tanker.',
+    ],
+    modelPlan: [
+      'Get every stove and flame in the bazaar out, starting with the nearest downhill stall, and stop the people filling cans. Petrol vapour travels downhill and along drains; a lit stove twenty metres away is not twenty metres of safety.',
+      'Call the fire brigade and tell the police mobile to close the street at both ends immediately. Eight minutes is survivable only if nothing ignites in the meantime, and a car engine entering the vapour is as good an ignition source as a match.',
+      'Dam the drain with sandbags, sacks of earth, or whatever the shops can provide, at the nearest point downstream of the spill. Keeping the fuel out of the drain is the difference between a street incident and a fire under the whole block.',
+      'Clear the bazaar outwards from the tanker, using the shopkeepers to move their own customers. Three hundred people do not leave a bazaar because strangers shout; they leave when their own shopkeepers tell them to.',
+      'Keep everyone upwind and uphill of the tanker, and do not let anyone try to plug the split. A leak that is running is a leak that is not building pressure, and an amateur repair is how a split becomes a rupture.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-43',
+    titleEn: 'Fog pile-up on the motorway',
+    titleUr: 'موٹروے پر دھند میں گاڑیوں کا ٹکراؤ',
+    narrativeEn: `Your group of seven is driving north on the motorway at 6.30 a.m. in January when you come upon a pile-up in dense fog: a loaded truck has jack-knifed across two lanes and five cars have run into it and each other. Visibility is under thirty metres and more vehicles are still arriving at speed. In one car a man is trapped by the legs and conscious; in another a woman is bleeding heavily from a cut to her forearm. A van at the back of the pile is leaking fuel onto the road. You have your own car, which is undamaged and parked on the hard shoulder behind the crash, its hazard lights, a warning triangle, a first-aid kit, a towrope and three phones with signal. The last service area is nine kilometres back. Two of your group have done a first-aid course.`,
+    narrativeUr: `آپ کا سات افراد کا گروپ جنوری کی صبح ساڑھے چھ بجے موٹروے پر شمال کی جانب سفر کر رہا ہے کہ گہری دھند میں گاڑیوں کے ٹکراؤ کا سامنا ہوتا ہے: ایک لدا ہوا ٹرک دو لینوں میں آڑا ہو گیا ہے اور پانچ کاریں اُس سے اور ایک دوسرے سے ٹکرا گئی ہیں۔ حد نگاہ تیس میٹر سے کم ہے اور پیچھے سے مزید گاڑیاں تیز رفتاری سے آ رہی ہیں۔ ایک کار میں ایک شخص کی ٹانگیں پھنسی ہوئی ہیں اور وہ ہوش میں ہے؛ دوسری کار میں ایک خاتون کے بازو پر گہرا زخم ہے اور خون تیزی سے بہہ رہا ہے۔ ٹکراؤ کے آخر میں کھڑی ایک وین سے سڑک پر ایندھن رس رہا ہے۔ آپ کے پاس اپنی کار ہے جو محفوظ ہے اور حادثے کے پیچھے سڑک کے کنارے کھڑی ہے، اُس کی ہیزرڈ لائٹس، ایک وارننگ ٹرائینگل، ابتدائی طبی امداد کا بکس، ایک ٹو رسی اور سگنل والے تین فون ہیں۔ پچھلا سروس ایریا نو کلومیٹر پیچھے ہے۔ آپ کے گروپ کے دو افراد نے ابتدائی طبی امداد کا کورس کیا ہوا ہے۔`,
+    problems: [
+      'Vehicles arriving in thirty-metre fog will keep adding to the pile-up.',
+      'A woman is losing blood fast from a forearm wound.',
+      'A man is trapped by the legs and cannot be freed with what you have.',
+      'Fuel is leaking onto a road full of hot engines and people.',
+    ],
+    modelPlan: [
+      'Send two people back along the hard shoulder with the warning triangle and torches or phone lights, walking well behind the crash to slow traffic. In this fog the next car is the most likely cause of the next death, and a warning placed at the wreck is seen too late.',
+      "One first-aider presses hard on the woman's wound with a pad from the kit and raises the arm. Heavy bleeding kills in minutes and is stopped by pressure alone; it is the one injury here the group can actually fix.",
+      'One person calls the Motorway Police on 130 and Rescue 1122, giving the direction, the nearest marker post and the fact that someone is trapped. Cutting a man free needs equipment the group does not have, so the call is his rescue.',
+      'Move everyone who can walk off the carriageway and behind the crash barrier, and switch off every engine near the fuel. People standing on the road in fog are the ones the next vehicle hits.',
+      'The second first-aider stays with the trapped man, talks to him and keeps him still and warm, without trying to pull him out. Moving a trapped leg can do more harm than waiting twenty minutes for the rescue crew.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-44',
+    titleEn: 'Forest fire above the hill resort',
+    titleUr: 'پہاڑی تفریح گاہ کے اوپر جنگل میں آگ',
+    narrativeEn: `You are eight students staying at a small guest house in a pine forest above a hill resort in late May. At 2 p.m. you see smoke on the slope about one kilometre above you, and the wind is blowing it downhill towards the guest house and a cluster of twelve wooden huts where families are staying. The only road down to the resort passes through the trees below. The guest house owner says the forest department post is five kilometres along the ridge and has a crew; mobile signal comes and goes. At the huts there is a family whose grandfather uses a wheelchair, and a school group of twenty children is out on a nature walk somewhere on the upper trail with one teacher. You have the guest house pick-up, a water tank with a hose that reaches the veranda, spades and a first-aid box.`,
+    narrativeUr: `آپ آٹھ طالب علم مئی کے آخر میں ایک پہاڑی تفریح گاہ کے اوپر چیڑ کے جنگل میں واقع ایک چھوٹے گیسٹ ہاؤس میں ٹھہرے ہوئے ہیں۔ دوپہر دو بجے آپ کو تقریباً ایک کلومیٹر اوپر ڈھلوان پر دھواں نظر آتا ہے، اور ہوا اُسے نیچے گیسٹ ہاؤس اور لکڑی کے بارہ کاٹیجوں کی طرف لا رہی ہے جہاں خاندان ٹھہرے ہوئے ہیں۔ تفریح گاہ تک جانے والی واحد سڑک نیچے درختوں کے بیچ سے گزرتی ہے۔ گیسٹ ہاؤس کا مالک بتاتا ہے کہ محکمہ جنگلات کی چوکی پہاڑی کی چوٹی کے ساتھ پانچ کلومیٹر دور ہے اور وہاں عملہ موجود ہے؛ موبائل سگنل آتا جاتا ہے۔ کاٹیجوں میں ایک خاندان ہے جس کے دادا وہیل چیئر استعمال کرتے ہیں، اور بیس بچوں کا ایک اسکول گروپ ایک استاد کے ساتھ اوپر والی پگڈنڈی پر کہیں قدرتی سیر پر گیا ہوا ہے۔ آپ کے پاس گیسٹ ہاؤس کی پک اپ، ایک پانی کی ٹینکی جس کا پائپ برآمدے تک پہنچتا ہے، بیلچے اور ابتدائی طبی امداد کا بکس ہے۔`,
+    problems: [
+      'A wind-driven fire is moving downhill towards occupied wooden huts.',
+      'Twenty children and one teacher are on the upper trail, near the fire and probably unaware of it.',
+      'An elderly man in a wheelchair cannot walk out.',
+      'The only road out runs through the trees the fire may reach.',
+    ],
+    modelPlan: [
+      'Keep trying the forest post and Rescue 1122 until one call gets through, and give the location and the wind direction. A trained crew is the only thing that can fight a forest fire; a group with a hose cannot.',
+      'Load the grandfather and the families from the huts into the pick-up and drive them down the road now, while it is still clear. The road is the one exit and the fire may cut it; people who can leave early should not be waiting on a decision.',
+      'Send three fit people up the trail, across the slope and away from the smoke, to find the school group and bring them down by the same route. Twenty children who do not know about a fire may walk into it, and a teacher alone cannot turn them in time.',
+      'The rest clear dry needles and brush from around the guest house with the spades and wet the veranda with the hose. It gives the building a chance, but nobody stays to defend it once the smoke reaches the huts.',
+      'Set a meeting point at the resort below and count everyone as they arrive. After a fire the worst news is someone nobody noticed was missing.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-45',
+    titleEn: 'Chairlift stopped over the gorge',
+    titleUr: 'کھائی کے اوپر رُکی ہوئی چیئر لفٹ',
+    narrativeEn: `Your group of six is waiting at the lower station of a small village chairlift at 3 p.m. when the lift jerks and stops. Eight chairs are hanging over a gorge; the lowest is about fifteen metres above the rocks and the highest about sixty. The operator says a drive belt has snapped, the spare is at the upper station, and the upper station has no operator today. There is a hand-crank that can move the cable slowly backwards, but only with two strong people turning it, and it needs the brake released at the upper station first. One of the stranded passengers is shouting that her son is having an asthma attack. The upper station is forty minutes' walk up a steep path. The operator has a loudhailer, a long rope and a landline to the district office. Cloud is coming in and the temperature is dropping.`,
+    narrativeUr: `آپ کا چھ افراد کا گروپ دوپہر تین بجے ایک چھوٹی دیہاتی چیئر لفٹ کے نچلے اسٹیشن پر انتظار کر رہا ہے کہ لفٹ ایک جھٹکے سے رُک جاتی ہے۔ آٹھ کرسیاں ایک کھائی کے اوپر لٹکی ہوئی ہیں؛ سب سے نیچی کرسی چٹانوں سے تقریباً پندرہ میٹر اور سب سے اونچی تقریباً ساٹھ میٹر بلندی پر ہے۔ آپریٹر بتاتا ہے کہ ڈرائیو بیلٹ ٹوٹ گیا ہے، اضافی بیلٹ اوپر والے اسٹیشن پر ہے، اور آج اوپر والے اسٹیشن پر کوئی آپریٹر نہیں۔ ایک ہینڈ کرینک ہے جو کیبل کو آہستہ آہستہ پیچھے لا سکتا ہے، مگر اُسے دو طاقتور آدمی ہی گھما سکتے ہیں، اور پہلے اوپر والے اسٹیشن پر بریک کھولنی ضروری ہے۔ پھنسے ہوئے مسافروں میں سے ایک خاتون چیخ کر بتا رہی ہیں کہ اُن کے بیٹے کو دمے کا دورہ پڑا ہے۔ اوپر والا اسٹیشن ایک ڈھلوان راستے پر چالیس منٹ پیدل ہے۔ آپریٹر کے پاس ایک لاؤڈ اسپیکر، ایک لمبی رسی اور ضلعی دفتر سے جڑا لینڈ لائن فون ہے۔ بادل آ رہے ہیں اور درجہ حرارت گر رہا ہے۔`,
+    problems: [
+      'Passengers are suspended up to sixty metres over rocks with no way down.',
+      'A boy on one chair is having an asthma attack.',
+      'Moving the cable needs someone at the upper station, forty minutes away.',
+      'Cloud and cold will make both the waiting and any rescue harder.',
+    ],
+    modelPlan: [
+      'Call the district office on the landline and ask for Rescue 1122 and a rope-rescue team. Nothing the group has can safely bring people down from sixty metres, and the people who can take hours to arrive, so they must be asked first.',
+      'Use the loudhailer to tell every chair what has happened, that help is coming and to sit still with the safety bar down. Panic on a stopped chair is the most likely way for someone to fall before help arrives.',
+      "Talk to the boy's mother through the loudhailer: ask whether he has an inhaler with him, and tell her to sit him upright and keep him breathing slowly. It is the only medical help that can reach that chair.",
+      "Send the two fittest people up the path to the upper station with the operator's instructions for the brake. If the hand-crank can bring the chairs back, it is the fastest way down for everyone, and the walk has to start now to finish before dark.",
+      'Two people stay on the crank at the lower station, ready to turn it only once the upper brake is confirmed released. Turning it too early could jerk the cable and throw someone off.',
+    ],
+    difficulty: 'hard',
+  },
+  {
+    code: 'gpe-46',
+    titleEn: 'Train stalled in the heat',
+    titleUr: 'شدید گرمی میں رُکی ہوئی ٹرین',
+    narrativeEn: `You are nine students travelling in the economy class of a passenger train in June when the engine fails in open country between two stations, at 1 p.m. The guard says a relief engine has been requested but will take about three hours. The outside temperature is forty-six degrees and the coaches have no working fans. Your coach holds about ninety passengers, including a pregnant woman who feels faint and an old man who has stopped sweating and is confused. The water vendor has twenty bottles left. A village with a hand pump is visible about one kilometre across the fields, and a line of trees gives shade two hundred metres from the track. The guard has a railway phone but says he cannot let passengers wander off.`,
+    narrativeUr: `آپ نو طالب علم جون کے مہینے میں ایک مسافر ٹرین کے اکانومی کلاس میں سفر کر رہے ہیں کہ دوپہر ایک بجے دو اسٹیشنوں کے درمیان کھلے علاقے میں انجن خراب ہو جاتا ہے۔ گارڈ بتاتا ہے کہ متبادل انجن منگوا لیا گیا ہے مگر تقریباً تین گھنٹے لگیں گے۔ باہر کا درجہ حرارت چھیالیس ڈگری ہے اور ڈبوں کے پنکھے کام نہیں کر رہے۔ آپ کے ڈبے میں تقریباً نوّے مسافر ہیں، جن میں ایک حاملہ خاتون ہیں جنہیں چکر آ رہے ہیں اور ایک بزرگ شخص ہیں جن کا پسینہ آنا بند ہو گیا ہے اور وہ غیر واضح باتیں کر رہے ہیں۔ پانی بیچنے والے کے پاس بیس بوتلیں بچی ہیں۔ کھیتوں کے پار تقریباً ایک کلومیٹر دور ایک گاؤں نظر آ رہا ہے جہاں ہینڈ پمپ ہے، اور پٹری سے دو سو میٹر دور درختوں کی ایک قطار سایہ دیتی ہے۔ گارڈ کے پاس ریلوے کا فون ہے مگر وہ کہتا ہے کہ مسافروں کو اِدھر اُدھر جانے کی اجازت نہیں دے سکتا۔`,
+    problems: [
+      'An old man shows the signs of heatstroke, which can kill within the hour.',
+      'A pregnant woman is faint in a closed, overheated coach.',
+      'Ninety people have twenty bottles of water for three hours at forty-six degrees.',
+      'The guard is worried about passengers scattering from the train.',
+    ],
+    modelPlan: [
+      'Take the old man and the pregnant woman out to the shade of the trees at once, lay the man down, and wet his skin and clothes with some of the bottled water while fanning him. A man who has stopped sweating and is confused is overheating dangerously, and cooling him is the treatment.',
+      'Ask the guard to use the railway phone to request an ambulance at the next level crossing, and to tell control there is a heatstroke case. He has the only line out and it costs him nothing to use it.',
+      "Agree with the guard that passengers may move to the shade in one group, with your group keeping count, rather than scattering. It solves his problem and the coach's heat at the same time.",
+      'Send three people to the village with every empty bottle and bucket to fill at the hand pump, and ask the villagers for more. Twenty bottles will not last ninety people three hours; a kilometre is a short walk for that much water.',
+      "Buy the vendor's bottles and ration them first to the sick, the old, children and the pregnant woman. The water should go where it prevents the next collapse, not to whoever reaches the vendor first.",
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-47',
+    titleEn: 'Rip current at the beach',
+    titleUr: 'ساحل پر سمندری بہاؤ',
+    narrativeEn: `You are seven friends on a public beach near Karachi at 5 p.m. on a Sunday in July, when the sea is rough and swimming is officially banned. A father shouts that his two teenage sons were pulled out while wading and are now about sixty metres offshore, one clinging to a body-board and the other struggling. The lifeguard hut is five hundred metres along the beach. Several men from the crowd are already wading in to help. One of your group is a trained lifeguard; two others are strong swimmers but have never swum in surf. On the beach you have a coil of nylon rope from a camel ride, two empty water cans with lids, and a camel owner who offers his animal. A police mobile is patrolling the road above the beach.`,
+    narrativeUr: `آپ سات دوست جولائی کے ایک اتوار کو شام پانچ بجے کراچی کے قریب ایک عوامی ساحل پر ہیں، جب سمندر میں طغیانی ہے اور تیراکی پر سرکاری پابندی ہے۔ ایک والد چیخ کر بتاتے ہیں کہ اُن کے دو نوعمر بیٹے پانی میں چلتے ہوئے بہہ گئے ہیں اور اب کنارے سے تقریباً ساٹھ میٹر دور ہیں؛ ایک باڈی بورڈ سے چمٹا ہوا ہے اور دوسرا ہاتھ پاؤں مار رہا ہے۔ لائف گارڈ کا کیبن ساحل پر پانچ سو میٹر دور ہے۔ ہجوم میں سے کئی آدمی پہلے ہی مدد کے لیے پانی میں اُتر رہے ہیں۔ آپ کے گروپ میں ایک تربیت یافتہ لائف گارڈ ہے؛ دو اور اچھے تیراک ہیں مگر کبھی لہروں میں نہیں تیرے۔ ساحل پر آپ کے پاس اونٹ کی سواری والے سے لی گئی نائلون کی ایک رسی، ڈھکن والے دو خالی پانی کے کین ہیں، اور ایک اونٹ والا اپنا اونٹ پیش کر رہا ہے۔ ساحل کے اوپر سڑک پر پولیس کی ایک گاڑی گشت کر رہی ہے۔`,
+    problems: [
+      'One boy is struggling and may go under within minutes.',
+      'Untrained men wading into the current are about to become more victims.',
+      'The professional lifeguards are five hundred metres away and unaware.',
+      'Only one person in your group is trained to swim out safely.',
+    ],
+    modelPlan: [
+      'The trained lifeguard swims out to the struggling boy with one sealed can as a float, going across the current rather than against it. He is the one person the group can send without adding a victim, and the struggling boy has least time.',
+      "Two people stop the wading men and hold them at knee depth. A rip current drowns rescuers as readily as the people they go after, and a crowd of them in the water will make the lifeguard's job impossible.",
+      'Send the camel owner or the fastest runner along the beach to the lifeguard hut, and flag down the police mobile on the road. The trained crew has boards and tubes, and the police can call an ambulance.',
+      'The strong swimmers wait in the shallows with the rope and the second can, to throw to the swimmers as they come back through the surf rather than going out themselves. Most rip-current rescues fail on the return, in the breaking waves.',
+      'Keep the father on the beach and give him a job: watching the boys and pointing to where they are. Someone must never take their eyes off them, and it keeps him from going in.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-48',
+    titleEn: 'Fumes from the gas heater',
+    titleUr: 'گیس ہیٹر کا دھواں',
+    narrativeEn: `Your group of six is staying at a two-storey guest house in a northern town in January. At 1 a.m. you wake with headaches and one of your group vomits. The corridor smells faintly of gas and the gas heater in your room is burning with a yellow, flickering flame. From the room next door, where a family of five is staying with a baby, there is no answer to knocking, although the heater light shows under the door. The owner lives in a separate house across the yard. The outside temperature is minus six. You have phones with signal, your own warm clothes and blankets, and the guest house has a first-aid box in the kitchen. The nearest hospital is eight kilometres away and the owner has a car.`,
+    narrativeUr: `آپ کا چھ افراد کا گروپ جنوری میں ایک شمالی قصبے کے دو منزلہ گیسٹ ہاؤس میں ٹھہرا ہوا ہے۔ رات ایک بجے آپ سر درد کے ساتھ جاگتے ہیں اور آپ کے ایک ساتھی کو قے ہوتی ہے۔ راہداری میں گیس کی ہلکی بو ہے اور آپ کے کمرے کا گیس ہیٹر پیلے، تھرتھراتے شعلے سے جل رہا ہے۔ ساتھ والے کمرے میں، جہاں ایک بچے سمیت پانچ افراد کا خاندان ٹھہرا ہے، دستک دینے پر کوئی جواب نہیں آتا، حالانکہ دروازے کے نیچے سے ہیٹر کی روشنی نظر آ رہی ہے۔ مالک صحن کے پار ایک الگ گھر میں رہتا ہے۔ باہر درجہ حرارت منفی چھ ہے۔ آپ کے پاس سگنل والے فون، اپنے گرم کپڑے اور کمبل ہیں، اور گیسٹ ہاؤس کے باورچی خانے میں ابتدائی طبی امداد کا بکس ہے۔ قریب ترین ہسپتال آٹھ کلومیٹر دور ہے اور مالک کے پاس گاڑی ہے۔`,
+    problems: [
+      'Your own group shows early signs of carbon monoxide poisoning.',
+      'A family with a baby next door is not responding.',
+      'Gas is leaking in the building and could ignite.',
+      'Anyone taken outside faces minus six degrees at night.',
+    ],
+    modelPlan: [
+      'Switch off your own heater, open the window and get your group out into the corridor and then the yard in coats and blankets. Carbon monoxide takes judgement before it takes consciousness, so you act while you still can.',
+      'Break into the next room if knocking fails, switch off the heater and carry the family out, the baby first. People who do not answer in a room with a burning heater may already be unconscious, and every minute in that air makes it worse.',
+      'Do not switch on lights or use a flame while the gas smell remains; turn the gas off at the meter if it can be found. A spark in a room full of gas turns a poisoning into an explosion.',
+      'Wake the owner and put the family and the worst affected in his car to the hospital, with a call ahead to say carbon monoxide poisoning is suspected. Fresh air helps, but only oxygen at a hospital treats serious poisoning, and the baby is most at risk.',
+      "Keep everyone else together in the owner's house or the car with the engine running and windows cracked, rather than out in the cold. Once they are out of the fumes, the cold becomes the next danger.",
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-49',
+    titleEn: 'Labour in the cut-off village',
+    titleUr: 'کٹے ہوئے گاؤں میں زچگی',
+    narrativeEn: `You are seven medical-college students on a village health camp in the Thar desert. At 9 p.m. a man comes to your tent: his wife has gone into labour three weeks early, the village midwife is away at a wedding in the next village six kilometres off, and the first baby took two days. The rural health centre is twenty-five kilometres away by a sandy track; its ambulance is out on another call and will not be back before midnight. The camp has a jeep with enough fuel for about sixty kilometres, a delivery kit, gloves, clean sheets, a gas lamp and a satellite phone with limited credit. Two women from your group have assisted at hospital deliveries. The woman's mother-in-law insists the baby must be delivered at home in the old way.`,
+    narrativeUr: `آپ سات میڈیکل کالج کے طالب علم تھر کے صحرا میں ایک دیہاتی طبی کیمپ پر ہیں۔ رات نو بجے ایک شخص آپ کے خیمے میں آتا ہے: اُس کی بیوی کو وقت سے تین ہفتے پہلے دردِ زہ شروع ہو گیا ہے، گاؤں کی دائی چھ کلومیٹر دور دوسرے گاؤں میں ایک شادی پر گئی ہوئی ہے، اور پہلا بچہ دو دن میں پیدا ہوا تھا۔ دیہی مرکزِ صحت ریتلے راستے سے پچیس کلومیٹر دور ہے؛ اُس کی ایمبولینس کسی اور کال پر گئی ہوئی ہے اور آدھی رات سے پہلے واپس نہیں آئے گی۔ کیمپ میں ایک جیپ ہے جس میں تقریباً ساٹھ کلومیٹر کا ایندھن ہے، زچگی کا کٹ، دستانے، صاف چادریں، ایک گیس لیمپ اور محدود بیلنس والا سیٹلائٹ فون ہے۔ آپ کے گروپ کی دو خواتین نے ہسپتال میں زچگی میں مدد کی ہوئی ہے۔ خاتون کی ساس اصرار کرتی ہیں کہ بچہ گھر پر پرانے طریقے سے ہی پیدا ہونا چاہیے۔`,
+    problems: [
+      'An early labour with a history of difficulty, far from a health centre.',
+      'The only trained local help, the midwife, is six kilometres away.',
+      'The ambulance is unavailable for at least three hours.',
+      "The family's wishes must be respected while keeping the mother safe.",
+    ],
+    modelPlan: [
+      'Send the two women who have assisted at deliveries to the house with the delivery kit, gloves, sheets and lamp, to check how far the labour has gone. Every other decision depends on whether the baby is hours away or minutes away.',
+      'Use the satellite phone to call the health centre, describe the situation and ask for advice and the ambulance as soon as it is free. Keep the call short; the credit may be needed again later.',
+      'Send the jeep with the husband to fetch the midwife from the wedding. Twelve kilometres there and back is well within the fuel, and a midwife the family trusts settles the argument with the mother-in-law better than any student can.',
+      'Speak to the mother-in-law respectfully and agree that the birth can happen at home while the women from the camp help and the midwife is fetched, on the understanding that if there is heavy bleeding or the labour stalls, the mother goes to the health centre. Agreement now saves a fight at the worst moment.',
+      'Keep the jeep fuelled and ready once it returns, with the route to the health centre worked out. If the labour goes wrong, the hour saved by being ready is the hour that matters.',
+    ],
+    difficulty: 'medium',
+  },
+  {
+    code: 'gpe-50',
+    titleEn: 'Bee swarm on the picnic trail',
+    titleUr: 'پکنک کی پگڈنڈی پر شہد کی مکھیوں کا حملہ',
+    narrativeEn: `Your group of eight is leading a class of twenty-five primary schoolchildren on a picnic walk in the Margalla Hills at 11 a.m. A boy throws a stone at a tree and disturbs a large bees' nest; bees swarm over the front of the line. Five children have been stung several times and are crying, and one girl says she is allergic to bee stings and her lips are starting to swell. The minibus is parked at the trailhead fifteen minutes' walk back down. There is a small stream fifty metres off the trail. You have a first-aid kit with antihistamine tablets, water bottles, a phone with signal and the girl's school bag, which her teacher says has an allergy pen in it.`,
+    narrativeUr: `آپ کا آٹھ افراد کا گروپ صبح گیارہ بجے مارگلہ کی پہاڑیوں میں پرائمری اسکول کے پچیس بچوں کی ایک جماعت کو پکنک کی سیر پر لے جا رہا ہے۔ ایک لڑکا درخت پر پتھر پھینکتا ہے اور شہد کی مکھیوں کا ایک بڑا چھتا چھیڑ دیتا ہے؛ مکھیاں قطار کے اگلے حصے پر حملہ کر دیتی ہیں۔ پانچ بچوں کو کئی ڈنک لگے ہیں اور وہ رو رہے ہیں، اور ایک بچی بتاتی ہے کہ اُسے شہد کی مکھی کے ڈنک سے الرجی ہے اور اُس کے ہونٹ سوجنے لگے ہیں۔ منی بس پگڈنڈی کے آغاز پر کھڑی ہے جو واپس نیچے پندرہ منٹ کا پیدل راستہ ہے۔ پگڈنڈی سے پچاس میٹر دور ایک چھوٹا نالہ بہتا ہے۔ آپ کے پاس اینٹی ہسٹامین گولیوں والا ابتدائی طبی امداد کا بکس، پانی کی بوتلیں، سگنل والا فون اور بچی کا اسکول بیگ ہے، جس کے بارے میں اُس کی استاد بتاتی ہیں کہ اُس میں الرجی کا انجیکشن پین موجود ہے۔`,
+    problems: [
+      'A child with a known allergy is showing swelling and may stop breathing.',
+      'The swarm is still active around the front of the line.',
+      'Five children have multiple stings and are frightened.',
+      'Twenty-five children must be kept together and counted.',
+    ],
+    modelPlan: [
+      'Move everyone quickly back down the trail, away from the nest, covering heads and faces, and do not stop until the bees stop following. Bees chase for some distance, and nothing else can be treated while they are still stinging.',
+      'Once clear, give the allergic girl her allergy pen from her bag in the outer thigh straight away, and phone Rescue 1122 to say a child has had a severe allergic reaction. Swelling lips can become a closed throat within minutes, and the pen works only if it is used early.',
+      'Carry the girl down to the minibus and drive towards the hospital to meet the ambulance, with a teacher and one of your group beside her. The pen buys time, sometimes only fifteen minutes; it does not end the danger.',
+      'Scrape the stings out of the other five children with a card or a fingernail, wash the spots with water and give antihistamine as directed on the pack. They are in pain but not in danger, so they come after the girl.',
+      'Count all twenty-five children at the minibus before it moves off. A frightened child who ran the wrong way is easy to miss in a scramble.',
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-51',
+    titleEn: 'Stray dog in the school yard',
+    titleUr: 'اسکول کے صحن میں آوارہ کتا',
+    narrativeEn: `You are five college students helping at a government primary school on sports day. At 10 a.m. a stray dog, foaming at the mouth and snapping, runs through the open gate into the yard where about a hundred and twenty children are sitting in rows. It bites a boy on the leg and then runs into an empty classroom. The headmaster is at a meeting in town; three teachers are present. The classroom has one door, which opens onto the yard, and windows with grilles. There is a phone in the office, a first-aid box with soap and bandages, and a water tap in the corner of the yard. The nearest hospital with rabies vaccine is ten kilometres away and a teacher has a car.`,
+    narrativeUr: `آپ پانچ کالج کے طالب علم کھیلوں کے دن ایک سرکاری پرائمری اسکول میں مدد کر رہے ہیں۔ صبح دس بجے منہ سے جھاگ نکالتا اور کاٹنے کو دوڑتا ایک آوارہ کتا کھلے دروازے سے صحن میں گھس آتا ہے جہاں تقریباً ایک سو بیس بچے قطاروں میں بیٹھے ہیں۔ وہ ایک لڑکے کی ٹانگ پر کاٹتا ہے اور پھر ایک خالی کلاس روم میں بھاگ جاتا ہے۔ ہیڈ ماسٹر شہر میں ایک میٹنگ میں ہیں؛ تین اساتذہ موجود ہیں۔ کلاس روم کا ایک ہی دروازہ ہے جو صحن میں کھلتا ہے، اور کھڑکیوں پر جالیاں لگی ہیں۔ دفتر میں ایک فون ہے، ابتدائی طبی امداد کا بکس ہے جس میں صابن اور پٹیاں ہیں، اور صحن کے کونے میں پانی کا نل ہے۔ ریبیز ویکسین والا قریب ترین ہسپتال دس کلومیٹر دور ہے اور ایک استاد کے پاس گاڑی ہے۔`,
+    problems: [
+      'A boy has been bitten by a dog that may be rabid.',
+      'The dog is loose inside the school and may come out again.',
+      'A hundred and twenty children are in the open yard.',
+      'The headmaster is away and the parents do not know.',
+    ],
+    modelPlan: [
+      'Shut the classroom door on the dog from outside and keep it shut. It takes one person seconds, and it turns a loose dog among children into a contained one.',
+      'Move all the children into the other classrooms with the teachers and close the doors. With the dog shut in and the children indoors, no one else can be bitten.',
+      "Wash the boy's wound under the running tap with soap for a full fifteen minutes, then cover it loosely. Thorough washing is the most important first aid for a possibly rabid bite and it can be done right away.",
+      "Send the boy to the hospital in the teacher's car with an adult, for rabies vaccine the same day, and phone his parents to meet them there. Rabies cannot be treated once it starts, so the vaccine must not wait for a family discussion.",
+      "Phone the headmaster and the municipal animal control from the office, and tell them the dog is shut in the classroom. Keeping it there lets them catch it, and knowing whether the dog was rabid matters for the boy's treatment.",
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-52',
+    titleEn: 'Bull loose at the cattle market',
+    titleUr: 'مویشی منڈی میں بپھرا ہوا بیل',
+    narrativeEn: `You are six friends at a crowded cattle market two days before Eid at 4 p.m. A large bull breaks its rope while being unloaded from a truck and charges down the main lane, knocking over a stall. An old man is lying on the ground where the bull passed, holding his arm, and a small girl has been separated from her mother in the rush. The bull has stopped at a dead end between two rows of tents, snorting and pawing, and people are gathering to throw things at it. Its owner is running after it with a rope. There is a police help desk at the market entrance three hundred metres away, a loudspeaker used for announcements, and a medical camp near the entrance.`,
+    narrativeUr: `آپ چھ دوست عید سے دو دن پہلے شام چار بجے ایک پُرہجوم مویشی منڈی میں ہیں۔ ایک بڑا بیل ٹرک سے اُتارتے ہوئے رسی تڑا لیتا ہے اور مرکزی گلی میں دوڑ پڑتا ہے اور ایک اسٹال گرا دیتا ہے۔ جہاں سے بیل گزرا وہاں ایک بزرگ آدمی زمین پر پڑے اپنا بازو پکڑے ہوئے ہیں، اور افراتفری میں ایک چھوٹی بچی اپنی ماں سے بچھڑ گئی ہے۔ بیل دو قطاروں کے خیموں کے درمیان ایک بند گلی میں رُک گیا ہے، پھنکار رہا ہے اور زمین کُھرچ رہا ہے، اور لوگ اُس پر چیزیں پھینکنے کے لیے جمع ہو رہے ہیں۔ اُس کا مالک رسی لے کر پیچھے بھاگ رہا ہے۔ منڈی کے داخلی دروازے پر تین سو میٹر دور پولیس کا ہیلپ ڈیسک ہے، اعلانات کے لیے ایک لاؤڈ اسپیکر ہے، اور داخلی دروازے کے قریب ایک طبی کیمپ ہے۔`,
+    problems: [
+      'An angry bull is cornered while a crowd provokes it.',
+      'An elderly man is injured on the ground.',
+      'A small girl is lost in a very large crowd.',
+      'The market has help at the entrance but it does not yet know.',
+    ],
+    modelPlan: [
+      'Two people move the crowd back from the dead end and stop the stone throwing. A cornered bull that is being provoked will charge again, and this time into the people blocking its way.',
+      'Two people help the old man sit up, keep his arm still, and walk or carry him to the medical camp at the entrance. His arm may be broken, and he must be moved away from where the bull may run.',
+      'One person takes the girl to the loudspeaker to announce where she is, and stays with her there. A fixed, announced place is how a mother finds a lost child in a crowd; walking around with her is how they keep missing each other.',
+      'One person tells the police help desk what has happened on the way. The police can clear the lane and keep order while the owner works.',
+      "Leave the bull to its owner, who knows the animal and has a rope, and keep the lane clear for him. Calming the bull is his job; the group's job is to make sure nobody else is standing where it runs.",
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-53',
+    titleEn: 'Sports day rained out',
+    titleUr: 'بارش میں کھیلوں کا دن',
+    narrativeEn: `You are the six members of the organising committee for your college's annual sports day, which starts at 9 a.m. It is now 7.30 a.m. and heavy rain overnight has flooded half the running track. The chief guest, a retired general, is due at 10 a.m. for the prize-giving. The trophy box was left locked in the physical education office, and the teacher with the key is stuck in traffic and will arrive at 9.30. Two hundred athletes and about five hundred spectators will start arriving at 8.30. The sound system is under a tent that is leaking. You have the college ground staff of four, a covered basketball court, a staff room, a van, and the principal's permission to change the programme as needed.`,
+    narrativeUr: `آپ اپنے کالج کے سالانہ کھیلوں کے دن کی انتظامی کمیٹی کے چھ ارکان ہیں، جو صبح نو بجے شروع ہونا ہے۔ اس وقت صبح ساڑھے سات بجے ہیں اور رات کی تیز بارش سے دوڑ کا آدھا ٹریک پانی میں ڈوبا ہوا ہے۔ مہمانِ خصوصی، ایک ریٹائرڈ جنرل، انعامات کی تقسیم کے لیے دس بجے پہنچنے والے ہیں۔ ٹرافیوں کا ڈبہ فزیکل ایجوکیشن کے دفتر میں تالے میں بند رہ گیا ہے، اور جس استاد کے پاس چابی ہے وہ ٹریفک میں پھنسے ہیں اور ساڑھے نو بجے پہنچیں گے۔ دو سو کھلاڑی اور تقریباً پانچ سو تماشائی ساڑھے آٹھ بجے سے آنا شروع ہو جائیں گے۔ ساؤنڈ سسٹم ایک ٹپکتے ہوئے شامیانے کے نیچے رکھا ہے۔ آپ کے پاس کالج کا چار افراد پر مشتمل گراؤنڈ اسٹاف، ایک چھت والا باسکٹ بال کورٹ، ایک اسٹاف روم، ایک وین، اور پرنسپل کی اجازت ہے کہ پروگرام میں ضرورت کے مطابق تبدیلی کر لیں۔`,
+    problems: [
+      'Half the track is under water and unsafe for races.',
+      'The sound system may be damaged by the leaking tent.',
+      'The trophies are locked away until 9.30.',
+      'The chief guest arrives at 10 and the programme must still hold together.',
+    ],
+    modelPlan: [
+      'Move the sound system out of the leaking tent to the covered basketball court straight away. Electrical equipment and rainwater are a danger as well as a cost, and without sound the rest of the day cannot be run.',
+      'Put the ground staff to work draining the track and redraw the programme: field events and the shorter races on the dry half first, the longer races later if the track dries. A changed programme that runs is better than the original that cannot.',
+      'Move the prize-giving to the basketball court, where it is dry whatever the weather does. The chief guest should not arrive to a flooded stage.',
+      'Phone the teacher with the key and agree to send the van to meet him on his route, so the trophies are ready well before 10. It is the one problem that simply needs the right person, and the van shortens his delay.',
+      'Put two committee members at the gate from 8.30 to tell athletes and spectators the changes and direct them. Seven hundred people who do not know the new plan will fill the wrong places and slow everything down.',
+    ],
+    difficulty: 'easy',
+  },
+  {
+    code: 'gpe-54',
+    titleEn: 'Locust swarm over the orchards',
+    titleUr: 'باغات پر ٹڈی دل کا حملہ',
+    narrativeEn: `You are eight agriculture students on a placement in a village in southern Punjab. At 3 p.m. a dark cloud of locusts appears on the horizon and the village elder says it will reach the mango orchards and the young cotton fields within two hours. The agriculture department's spray team is at a village fifteen kilometres away. At the same moment a farmer tells you his father, who is asthmatic, has had trouble breathing since a neighbour began spraying pesticide by hand on his own field without a mask. The village has drums, pots and a mosque loudspeaker, about fifty farmers ready to help, and dry crop waste that can be burned for smoke. You have a motorcycle and phones with signal.`,
+    narrativeUr: `آپ آٹھ زرعی طلبہ جنوبی پنجاب کے ایک گاؤں میں عملی تربیت پر ہیں۔ سہ پہر تین بجے اُفق پر ٹڈی دل کا ایک سیاہ بادل نمودار ہوتا ہے اور گاؤں کے بزرگ بتاتے ہیں کہ یہ دو گھنٹوں میں آم کے باغات اور کپاس کے نوزائیدہ کھیتوں تک پہنچ جائے گا۔ محکمہ زراعت کی اسپرے ٹیم پندرہ کلومیٹر دور ایک گاؤں میں ہے۔ اسی وقت ایک کسان آپ کو بتاتا ہے کہ اُس کے والد، جو دمے کے مریض ہیں، اُس وقت سے سانس لینے میں مشکل محسوس کر رہے ہیں جب سے ایک پڑوسی نے اپنے کھیت میں بغیر ماسک کے ہاتھ سے کیڑے مار دوا چھڑکنا شروع کی ہے۔ گاؤں میں ڈھول، برتن اور مسجد کا لاؤڈ اسپیکر ہے، تقریباً پچاس کسان مدد کے لیے تیار ہیں، اور فصل کا سوکھا کچرا ہے جسے دھوئیں کے لیے جلایا جا سکتا ہے۔ آپ کے پاس ایک موٹر سائیکل اور سگنل والے فون ہیں۔`,
+    problems: [
+      'An asthmatic man is struggling to breathe after pesticide exposure.',
+      'Untrained hand spraying without protection is putting more people at risk.',
+      'A locust swarm will reach the crops in two hours.',
+      'The trained spray team is fifteen kilometres away and not yet called.',
+    ],
+    modelPlan: [
+      'Move the asthmatic father away from the spraying to fresh air, help him use his inhaler if he has one, and call Rescue 1122 if his breathing does not improve. Crops can be replanted and a man cannot, so he comes first.',
+      "Stop the neighbour spraying by hand without a mask, and explain why. Untrained spraying poisons people faster than it kills locusts, and it will make the professional team's work more dangerous when it arrives.",
+      'Phone the agriculture department and ask for the spray team to be sent to this village, giving the direction the swarm is coming from. Only a trained team with the right equipment can reduce a swarm this size.',
+      'Use the mosque loudspeaker to call the farmers out with drums, pots and smoke from the crop waste at the edges of the orchards and cotton, lit downwind of the houses. Noise and smoke can keep the locusts from settling until the spray team arrives.',
+      'Send one student on the motorcycle to guide the spray team in from the main road. A team that has to search for the village loses the time the drumming has bought.',
+    ],
+    difficulty: 'easy',
+  },
+]
