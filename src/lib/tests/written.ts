@@ -146,7 +146,8 @@ export async function startWrittenAttempt(
   const totalSeconds =
     timing.totalSeconds ??
     (timing.perItemSeconds ? timing.perItemSeconds * count : undefined) ??
-    (timing.writeSeconds ? (timing.writeSeconds + (timing.viewSeconds ?? 0)) * count : undefined)
+    (timing.writeSeconds ? (timing.writeSeconds + (timing.viewSeconds ?? 0)) * count : undefined) ??
+    (timing.planSeconds ? timing.planSeconds * count : undefined)
   const deadlineAt = totalSeconds ? new Date(Date.now() + totalSeconds * 1000) : null
 
   try {

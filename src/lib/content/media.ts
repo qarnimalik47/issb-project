@@ -40,6 +40,10 @@ export async function createFigureAsset(input: {
   data: Buffer
   filename?: string
   userId: string
+  /** Defaults to a question figure; Picture Story and GPE maps pass their own kind. */
+  kind?: string
+  /** Extra metadata stored beside the dimensions (e.g. the image's sha256). */
+  meta?: Record<string, unknown>
 }): Promise<FigureSummary> {
   if (input.data.length === 0) throw new ApiError('validation_failed', 'The file is empty')
   if (input.data.length > MAX_FIGURE_BYTES) {
@@ -52,7 +56,8 @@ export async function createFigureAsset(input: {
 
   const id = randomUUID()
   const storageKey = `media/${id}.${image.ext}`
-  const meta: Meta = {
+  const meta: Meta & Record<string, unknown> = {
+    ...input.meta,
     width: image.width,
     height: image.height,
     originalName: input.filename?.slice(0, 200),
@@ -63,7 +68,7 @@ export async function createFigureAsset(input: {
       .insert(mediaAssets)
       .values({
         id,
-        kind: FIGURE_KIND,
+        kind: input.kind ?? FIGURE_KIND,
         storageKey,
         mime: image.mime,
         sizeBytes: input.data.length,

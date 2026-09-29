@@ -36,6 +36,8 @@
  * either language and half a translation is worse than none.
  */
 
+import { planningStemUr as stemUr } from '../../content/planning-format'
+
 export type SeedPlanningItem = {
   /** Stable short code, for ordering and for tracing a row back to this file. */
   code: string
@@ -52,33 +54,14 @@ export type SeedPlanningItem = {
 }
 
 /**
- * The instruction is identical in every exercise, so it lives here once rather
- * than being re-typed — and slowly re-worded — fifty times.
+ * Stem and explanation layout is shared with the admin planning editor, so a
+ * seeded scenario and an admin-written one are stored — and edit — the same way.
  */
-const TASK_EN =
-  'Write your own plan. List the problems in the order you would deal with them, say who goes where and with what, and give your reason for that order. Do not add resources that are not mentioned above.'
+export { planningStemEn, planningExplanation } from '../../content/planning-format'
 
-const TASK_UR =
-  'اپنا منصوبہ تحریر کریں۔ مسائل کو اُسی ترتیب سے لکھیں جس ترتیب سے آپ اُنہیں حل کریں گے، بتائیں کہ کون کہاں اور کن وسائل کے ساتھ جائے گا، اور اپنی ترتیب کی وجہ بیان کریں۔ اوپر بیان کیے گئے وسائل کے علاوہ کوئی نیا وسیلہ فرض نہ کریں۔'
-
-/** The stored question stem: title, narrative, then the standing instruction. */
-export function planningStemEn(item: SeedPlanningItem): string {
-  return [item.titleEn, item.narrativeEn.trim(), TASK_EN].join('\n\n')
-}
-
+/** Every seeded scenario carries a full Urdu narrative, so its Urdu stem is never null. */
 export function planningStemUr(item: SeedPlanningItem): string {
-  return [item.titleUr, item.narrativeUr.trim(), TASK_UR].join('\n\n')
-}
-
-/** The model plan, stored as the question's explanation for reviewers. */
-export function planningExplanation(item: SeedPlanningItem): string {
-  const problems = item.problems.map((p, i) => `${i + 1}. ${p}`).join('\n')
-  const plan = item.modelPlan.map((p, i) => `${i + 1}. ${p}`).join('\n')
-  return [
-    `Problems present in the narrative:\n${problems}`,
-    `One defensible plan:\n${plan}`,
-    'This is one workable order, not the only one. A plan that reaches the same ends in a different order, with reasons given, is equally good.',
-  ].join('\n\n')
+  return stemUr(item)!
 }
 
 export const PLANNING_ITEMS: SeedPlanningItem[] = [

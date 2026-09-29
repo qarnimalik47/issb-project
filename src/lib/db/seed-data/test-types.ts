@@ -156,7 +156,8 @@ export const TEST_TYPES: SeedTestType[] = [
     nameUr: 'گروپ پلاننگ',
     dimension: 'gto',
     scoringType: 'rubric',
-    timing: {},
+    // One scenario at a time: read the briefing and map, then 10 minutes to write a plan.
+    timing: { planSeconds: 600 },
     sortOrder: 160,
   },
   {

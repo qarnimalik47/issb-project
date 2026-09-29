@@ -11,10 +11,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect('/login')
   const { locale, t } = await getT()
 
-  /* The five a candidate touches on a normal study day. */
+  /* What a candidate touches on a normal study day. */
   const items: NavItem[] = [
     { href: '/practice', label: t.nav.practice },
     { href: '/written', label: t.nav.written },
+    { href: '/opi', label: t.nav.opi },
     { href: '/voice', label: t.nav.voice },
     { href: '/gk', label: t.nav.gk },
     { href: '/insights', label: t.nav.insights },

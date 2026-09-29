@@ -169,7 +169,13 @@ export function WrittenPlayer({
           your answer sheet. You will confirm the extracted text before it is saved.
         </p>
         {attempt.items.map((it) => (
-          <PaperItem key={it.ref} attemptId={attempt.id} item={it} ur={ur} />
+          <PaperItem
+            key={it.ref}
+            attemptId={attempt.id}
+            item={it}
+            ur={ur}
+            withBriefing={Boolean(attempt.timing.planSeconds)}
+          />
         ))}
         <button
           onClick={submit}
@@ -219,6 +225,20 @@ export function WrittenPlayer({
   if (attempt.timing.viewSeconds && attempt.timing.writeSeconds) {
     return (
       <PictureStoryTyped
+        attempt={attempt}
+        answers={answers}
+        setAnswers={setAnswers}
+        save={save}
+        submit={submit}
+        ur={ur}
+      />
+    )
+  }
+
+  // Group Planning: read the briefing and map, then write a plan against the clock.
+  if (attempt.timing.planSeconds) {
+    return (
+      <PlanningTyped
         attempt={attempt}
         answers={answers}
         setAnswers={setAnswers}
@@ -381,7 +401,149 @@ function PictureStoryTyped({
   )
 }
 
-function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur: boolean }) {
+/**
+ * Group Planning Exercise: one scenario at a time. The briefing and map stay
+ * on screen — at the board the model and narrative are in front of the group
+ * while they plan — and the candidate has `planSeconds` to write an individual
+ * plan. Saved and advanced when the clock runs out; a reload resumes at the
+ * first scenario with no saved plan.
+ */
+function PlanningTyped({
+  attempt,
+  answers,
+  setAnswers,
+  save,
+  submit,
+  ur,
+}: {
+  attempt: Attempt
+  answers: Record<string, string>
+  setAnswers: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  save: (
+    id: string,
+    ref: string,
+    text: string,
+    timingMeta?: Record<string, number>,
+  ) => Promise<void>
+  submit: () => Promise<void>
+  ur: boolean
+}) {
+  const planSeconds = attempt.timing.planSeconds!
+  const [idx, setIdx] = useState(() => {
+    const first = attempt.items.findIndex((it) => !attempt.responses[it.ref]?.text)
+    return first < 0 ? 0 : first
+  })
+  const [left, setLeft] = useState(planSeconds)
+  const answersRef = useRef(answers)
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
+
+  const item = attempt.items[idx]
+
+  const finishItem = useCallback(() => {
+    if (!item) return
+    void save(attempt.id, item.ref, answersRef.current[item.ref] ?? '', {
+      planSeconds: planSeconds - left,
+    })
+    if (idx + 1 < attempt.items.length) {
+      setIdx(idx + 1)
+      setLeft(planSeconds)
+      window.scrollTo({ top: 0 })
+    } else {
+      void submit()
+    }
+  }, [attempt, item, idx, left, save, submit, planSeconds])
+
+  useEffect(() => {
+    if (left <= 0) {
+      finishItem()
+      return
+    }
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [left, finishItem])
+
+  if (!item) return <p>Done.</p>
+  const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`
+  const text = ur && item.promptUr ? item.promptUr : item.prompt
+  const [title, ...body] = text.split('\n\n')
+  const words = (answers[item.ref] ?? '').trim().split(/\s+/).filter(Boolean).length
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-canvas/90 py-2 text-sm text-ink-muted backdrop-blur">
+        <span>
+          Scenario {idx + 1} / {attempt.items.length}
+        </span>
+        <span className={`font-mono text-base ${left <= 60 ? 'text-red-600' : 'text-ink'}`}>
+          {clock}
+        </span>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <article dir={ur && item.promptUr ? 'rtl' : 'ltr'} className="flex flex-col gap-3">
+          <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
+          {item.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              dir="ltr"
+              src={item.imageUrl}
+              alt="Scenario map"
+              className="max-h-[50vh] w-auto max-w-full rounded border border-line bg-white object-contain"
+            />
+          )}
+          {body.map((para, i) => (
+            <p
+              key={i}
+              className={`whitespace-pre-line text-sm leading-relaxed ${
+                i === body.length - 1 ? 'font-medium text-ink' : 'text-ink'
+              }`}
+            >
+              {para}
+            </p>
+          ))}
+        </article>
+        <div className="flex flex-col gap-2">
+          <label htmlFor={`plan-${item.ref}`} className="text-sm font-medium text-ink">
+            Your plan
+          </label>
+          <textarea
+            id={`plan-${item.ref}`}
+            autoFocus
+            key={item.ref}
+            rows={18}
+            value={answers[item.ref] ?? ''}
+            onChange={(e) => setAnswers((a) => ({ ...a, [item.ref]: e.target.value }))}
+            placeholder={'1. First problem — who goes, with what, and why it comes first\n2. …'}
+            className={inputCls}
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-ink-muted tabular-nums">{words} words</span>
+            <button
+              onClick={finishItem}
+              className="w-fit rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white"
+            >
+              {idx + 1 < attempt.items.length ? 'Next scenario' : 'Submit'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PaperItem({
+  attemptId,
+  item,
+  ur,
+  withBriefing = false,
+}: {
+  attemptId: string
+  item: Item
+  ur: boolean
+  /** Planning: the map illustrates the briefing rather than replacing it. */
+  withBriefing?: boolean
+}) {
   const [ocrText, setOcrText] = useState<string | null>(null)
   const [confirmText, setConfirmText] = useState('')
   const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready' | 'confirmed'>(
@@ -428,6 +590,11 @@ function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur:
 
   return (
     <div className="rounded-lg border border-line p-4">
+      {withBriefing && (
+        <div className="mb-3 text-sm leading-relaxed whitespace-pre-line">
+          {ur && item.promptUr ? item.promptUr : item.prompt}
+        </div>
+      )}
       {item.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -436,7 +603,11 @@ function PaperItem({ attemptId, item, ur }: { attemptId: string; item: Item; ur:
           className="mb-3 max-h-80 w-auto max-w-full rounded border border-neutral-200 object-contain dark:border-neutral-800"
         />
       ) : (
-        <div className="mb-2 font-medium">{ur && item.promptUr ? item.promptUr : item.prompt}</div>
+        !withBriefing && (
+          <div className="mb-2 font-medium">
+            {ur && item.promptUr ? item.promptUr : item.prompt}
+          </div>
+        )
       )}
       {status === 'idle' && (
         <input type="file" accept="image/jpeg,image/png" onChange={upload} className="text-sm" />

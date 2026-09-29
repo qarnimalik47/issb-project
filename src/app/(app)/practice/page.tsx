@@ -7,6 +7,7 @@ import { getT } from '@/lib/i18n'
 import { interpolate } from '@/lib/i18n/format'
 import { getPracticeOverview } from '@/lib/tests/attempts'
 import { getSetProgressByType } from '@/lib/tests/sets'
+import { OPI_ITEMS } from '@/lib/opi/items'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { ButtonLink } from '@/components/ui/Button'
@@ -26,7 +27,7 @@ export default async function PracticePage() {
   // Every test type, not just the MCQ ones: the written tests (WAT, SCT,
   // group discussion…) are now divided into numbered sets too, so they belong
   // in the same catalogue rather than being reachable only from /written.
-  const rows = await db
+  const bankRows = await db
     .select({
       id: testTypes.id,
       code: testTypes.code,
@@ -43,6 +44,8 @@ export default async function PracticePage() {
     )
     .groupBy(testTypes.id)
     .orderBy(testTypes.sortOrder)
+  // The OPI's statements live in code (src/lib/opi/items.ts), not the question bank.
+  const rows = bankRows.map((r) => (r.code === 'opi' ? { ...r, count: OPI_ITEMS.length } : r))
 
   const { resumable, lastPercentage } = await getPracticeOverview(user.id)
   const setProgress = await getSetProgressByType(user.id)
@@ -120,7 +123,10 @@ export default async function PracticePage() {
                     {canResume ? p.resume : p.start}
                   </ButtonLink>
                 )}
-                {hasSets ? (
+                {r.code === 'opi' ? (
+                  // The OPI is its own questionnaire, not a question bank.
+                  <ButtonLink href="/opi">{canResume ? p.resume : p.start}</ButtonLink>
+                ) : hasSets ? (
                   <ButtonLink
                     href={`/practice/sets/${r.code}`}
                     variant={r.scoringType === 'objective' ? 'outline' : 'primary'}

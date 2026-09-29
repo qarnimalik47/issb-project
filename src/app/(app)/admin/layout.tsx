@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (user.role !== 'admin' && user.role !== 'content_editor') redirect('/dashboard')
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4 border-b border-line pb-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line pb-3 text-sm">
         <span className="font-semibold">Admin</span>
         <a href="/admin" className="text-ink-muted hover:text-ink dark:hover:text-white">
           Dashboard
@@ -21,6 +21,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           className="text-ink-muted hover:text-ink dark:hover:text-white"
         >
           Bulk import
+        </a>
+        <a
+          href="/admin/picture-stories"
+          className="text-ink-muted hover:text-ink dark:hover:text-white"
+        >
+          Picture Story
+        </a>
+        <a href="/admin/planning" className="text-ink-muted hover:text-ink dark:hover:text-white">
+          Military Planning
         </a>
         <a href="/admin/import" className="text-ink-muted hover:text-ink dark:hover:text-white">
           PDF Import
