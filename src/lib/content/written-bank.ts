@@ -289,7 +289,7 @@ export async function listPlanning(): Promise<PlanningSummary[]> {
     const p = parsePlanning(r)
     return {
       id: r.id,
-      title: p.titleEn || r.stemEn.slice(0, 80),
+      title: p.titleEn || `${r.stemEn.slice(0, 70).trimEnd()}…`,
       difficulty: r.difficulty as Difficulty,
       status: r.status,
       hasMap: !!r.mediaId,

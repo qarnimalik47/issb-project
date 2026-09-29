@@ -75,6 +75,8 @@ function splitStem(stem: string | null | undefined, task: string) {
   if (!stem?.trim()) return { title: '', narrative: '' }
   const parts = stem.replace(/\r\n?/g, '\n').split('\n\n')
   if (parts.length > 1 && parts[parts.length - 1]!.trim() === task) parts.pop()
+  // Older sample items are a single paragraph with no title: it is all briefing.
+  if (parts.length === 1) return { title: '', narrative: parts[0]!.trim() }
   const [title = '', ...rest] = parts
   return { title: title.trim(), narrative: rest.join('\n').trim() }
 }

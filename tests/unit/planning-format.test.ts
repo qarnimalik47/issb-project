@@ -31,6 +31,17 @@ describe('planning format', () => {
     ).toBe(true)
   })
 
+  it('reads an old single-paragraph item as all briefing, no title', () => {
+    const parsed = parsePlanning({
+      stemEn: 'A bus has broken down on a remote road at night. Prioritise and plan.',
+      stemUr: null,
+      explanationEn: null,
+    })
+    expect(parsed.titleEn).toBe('')
+    expect(parsed.narrativeEn).toMatch(/^A bus has broken down/)
+    expect(parsed.problems).toEqual([])
+  })
+
   it('folds blank lines inside an admin-written briefing so parsing stays exact', () => {
     const parts = {
       titleEn: 'Bridge down',
