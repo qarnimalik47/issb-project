@@ -15,6 +15,8 @@ import { ISLAMIC_TOPICS } from './gk-topics-islamic'
 import { WORLD_TOPICS } from './gk-topics-world'
 import { PAKISTAN_TOPICS } from './gk-topics-pakistan'
 import { RECALL_TOPICS } from './gk-topics-recall'
+import { ISSB_TOPICS } from './gk-topics-issb'
+import { HISTORY_TOPICS } from './gk-topics-history'
 
 const wiki = (title: string) => ({
   name: `Wikipedia — ${title}`,
@@ -374,6 +376,9 @@ export const CURATED_TOPICS: CuratedTopic[] = [
       "Boards test whether you understand cause and effect, not whether you can recite a list. Be ready to explain why the 1937 provincial ministries changed Jinnah's position — that single link shows you understand the movement rather than having memorised it.",
     facts: [
       { label: 'Muslim League founded', value: '30 December 1906, Dhaka' },
+      { label: 'Founder of the Muslim League', value: 'Nawab Khwaja Salimullah of Dhaka' },
+      { label: 'First President of the Muslim League', value: 'Sir Agha Khan III' },
+      { label: 'Muslim League headquarters', value: 'Lucknow' },
       { label: 'Separate electorates granted', value: 'Minto-Morley Reforms, 1909' },
       { label: 'Lucknow Pact', value: '1916' },
       { label: "Jinnah's Fourteen Points", value: '1929' },
@@ -390,8 +395,9 @@ export const CURATED_TOPICS: CuratedTopic[] = [
       {
         heading: 'Why a separate party',
         bullets: [
-          'The All-India Muslim League was founded at Dhaka in 1906 to protect Muslim political interests, which its founders believed the Congress could not represent.',
+          'The All-India Muslim League was founded at Dhaka in 1906 to protect Muslim political interests, which its founders believed the Congress could not represent. Nawab Khwaja Salimullah of Dhaka convened it, Sir Agha Khan III was its first president, and its headquarters settled at Lucknow.',
           'Separate electorates, conceded in 1909, recognised in law that Muslims were a distinct political constituency — a precedent that ran all the way to 1947.',
+          'The party did not outlive the object it was formed for: after 1947 it divided along the new borders into the Muslim League in Pakistan, the Awami League in what became Bangladesh, and the Indian Union Muslim League.',
         ],
       },
       {
@@ -570,6 +576,7 @@ export const CURATED_TOPICS: CuratedTopic[] = [
       {
         heading: 'Amendments worth knowing',
         bullets: [
+          'The Second Amendment, passed unanimously by the National Assembly on 7 September 1974, defined who is a Muslim for the purposes of the constitution and declared the Ahmadi or Qadiani community a non-Muslim minority. The date is observed each year as Youm-e-Tahaffuz-e-Khatm-e-Nubuwwat.',
           "The Eighteenth Amendment of 2010 devolved substantial subjects to the provinces and removed the President's power to dissolve the National Assembly.",
           "Amendments have repeatedly shifted the balance between the President and the Prime Minister, which is the central story of Pakistan's constitutional history.",
         ],
@@ -630,4 +637,6 @@ export const CURATED_TOPICS: CuratedTopic[] = [
   ...WORLD_TOPICS,
   ...PAKISTAN_TOPICS,
   ...RECALL_TOPICS,
+  ...ISSB_TOPICS,
+  ...HISTORY_TOPICS,
 ]

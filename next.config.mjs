@@ -15,6 +15,10 @@ const nextConfig = {
   // longer supports the `eslint` config key.)
   typescript: { ignoreBuildErrors: false },
   poweredByHeader: false,
+  // Dev-only: when the dev server is bound to 0.0.0.0 so another device on the
+  // LAN can reach it, Next blocks its own /_next dev resources as cross-origin.
+  // Allow the loopback and LAN hosts we actually serve on.
+  allowedDevOrigins: ['127.0.0.1', 'localhost', '192.168.100.6'],
 }
 
 export default nextConfig

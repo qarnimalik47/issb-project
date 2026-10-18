@@ -1,6 +1,6 @@
 import type { GkTopic } from '@/lib/db/schema/gk'
 import { Card } from '@/components/ui/Card'
-import { sectionLabel } from './TopicView'
+import { sectionLabel } from './sectionLabel'
 
 /** Topics grouped under their section heading, so the library reads as a
  *  syllabus rather than a flat list. */

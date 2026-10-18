@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth/session'
-import { countTopicsByKind } from '@/lib/gk/topics'
+import { countTopicsByKind, listTopics } from '@/lib/gk/topics'
+import { sectionLabel } from '@/components/gk/sectionLabel'
 import { dueCount } from '@/lib/gk/flashcards'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, Panel } from '@/components/ui/Card'
@@ -13,7 +14,23 @@ export default async function GkPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
 
-  const [counts, due] = await Promise.all([countTopicsByKind(), dueCount(user.id)])
+  const [counts, due, gkTopics, caTopics] = await Promise.all([
+    countTopicsByKind(),
+    dueCount(user.id),
+    listTopics({ kind: 'gk' }),
+    listTopics({ kind: 'current_affairs' }),
+  ])
+
+  /* The three largest sections of each library, so the cards say what is
+     actually inside rather than only how much of it there is. */
+  const topSections = (list: { section: string }[]) => {
+    const counts = new Map<string, number>()
+    for (const t of list) counts.set(t.section, (counts.get(t.section) ?? 0) + 1)
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([s]) => sectionLabel(s))
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -23,7 +40,7 @@ export default async function GkPage() {
       />
 
       {due > 0 && (
-        <Panel className="flex flex-wrap items-center justify-between gap-5">
+        <Panel className="rise flex flex-wrap items-center justify-between gap-5">
           <div>
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-brass-400" aria-hidden="true" />
@@ -43,29 +60,31 @@ export default async function GkPage() {
       )}
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Card className="flex flex-col gap-4">
+        <Card className="rise lift flex flex-col gap-4" style={{ '--i': 1 } as React.CSSProperties}>
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-xl font-bold text-ink">General knowledge</h2>
-            <Badge tone="neutral">{counts.gk} topics</Badge>
+            <Badge tone="green">{counts.gk} topics</Badge>
           </div>
           <p className="leading-relaxed text-ink-muted">
-            Pakistan, its founders, the armed forces, geography and world basics. Each topic is a
-            page of short points you can revise in a few minutes.
+            The board itself, Pakistan, its founders, the armed forces, Islamic studies and the
+            world. Each topic is a page of short points you can revise in a few minutes.
           </p>
+          <p className="text-sm text-ink-muted">{topSections(gkTopics).join(' · ')}</p>
           <div className="mt-auto pt-1">
             <ButtonLink href="/gk/topics">Open the library</ButtonLink>
           </div>
         </Card>
 
-        <Card className="flex flex-col gap-4">
+        <Card className="rise lift flex flex-col gap-4" style={{ '--i': 2 } as React.CSSProperties}>
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-xl font-bold text-ink">Current affairs</h2>
-            <Badge tone="neutral">{counts.current_affairs} dossiers</Badge>
+            <Badge tone="brass">{counts.current_affairs} dossiers</Badge>
           </div>
           <p className="leading-relaxed text-ink-muted">
             Conflicts, diplomacy and the economy. Each dossier covers how it started, how it
             developed and where it stands, with every source listed.
           </p>
+          <p className="text-sm text-ink-muted">{topSections(caTopics).join(' · ')}</p>
           <div className="mt-auto pt-1">
             <ButtonLink href="/gk/current-affairs">Open the dossiers</ButtonLink>
           </div>
@@ -75,7 +94,8 @@ export default async function GkPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <a
           href="/gk/flashcards"
-          className="rounded-card border border-line bg-surface p-5 transition-colors hover:border-brand-300"
+          className="rise lift rounded-card border border-line bg-surface p-5 shadow-card hover:border-brand-300"
+          style={{ '--i': 3 } as React.CSSProperties}
         >
           <h3 className="font-display font-semibold text-ink">Flashcards</h3>
           <p className="mt-1.5 text-sm text-ink-muted">
@@ -84,7 +104,8 @@ export default async function GkPage() {
         </a>
         <a
           href="/gk/digest"
-          className="rounded-card border border-line bg-surface p-5 transition-colors hover:border-brand-300"
+          className="rise lift rounded-card border border-line bg-surface p-5 shadow-card hover:border-brand-300"
+          style={{ '--i': 4 } as React.CSSProperties}
         >
           <h3 className="font-display font-semibold text-ink">Daily digest</h3>
           <p className="mt-1.5 text-sm text-ink-muted">

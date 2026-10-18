@@ -115,46 +115,82 @@ export function FlashcardReview() {
     <div className="flex flex-col items-center gap-6">
       {deckPicker}
       {offline && <p className="text-xs text-brass-600">Offline — reviews will not be saved.</p>}
-      <p className="text-sm text-ink-muted">
-        {i + 1} / {cards.length} · {card.deck} {card.isNew && '· new'}
-      </p>
-      <button
-        onClick={() => setFlipped((f) => !f)}
-        className="min-h-40 w-full max-w-md rounded-xl border border-line p-8 text-center text-lg"
-      >
-        {!flipped ? (
-          <>
-            <div>{card.frontEn}</div>
+      <div className="flex w-full max-w-md flex-col gap-2">
+        <div className="flex items-center justify-between text-sm text-ink-muted">
+          <span>
+            {i + 1} of {cards.length} · {card.deck}
+          </span>
+          {card.isNew && <span className="text-brass-600">New card</span>}
+        </div>
+        <div className="h-1 w-full overflow-hidden rounded-pill bg-sunk">
+          <div
+            className="h-full origin-left rounded-pill bg-brand-600 transition-[width] duration-500 ease-out"
+            style={{ width: `${Math.round((i / cards.length) * 100)}%` }}
+          />
+        </div>
+      </div>
+      {/* Both faces are always rendered, stacked; the card rotates between
+          them so the answer turns into view instead of replacing the question. */}
+      <div className="flip-scene w-full max-w-md">
+        <button
+          onClick={() => setFlipped((f) => !f)}
+          data-flipped={flipped}
+          aria-label={flipped ? 'Show the question' : 'Reveal the answer'}
+          className="flip-card relative grid min-h-52 w-full text-center"
+        >
+          <span className="flip-face col-start-1 row-start-1 flex flex-col items-center justify-center gap-2 rounded-panel border border-line bg-surface p-8 shadow-card">
+            <span className="text-lg text-ink">{card.frontEn}</span>
             {card.frontUr && (
-              <div dir="rtl" className="mt-2 text-ink-muted">
+              <span dir="rtl" className="text-ink-muted">
                 {card.frontUr}
-              </div>
+              </span>
             )}
-            <div className="mt-4 text-xs text-ink-muted">tap to reveal</div>
-          </>
-        ) : (
-          <>
-            <div className="font-semibold">{card.backEn}</div>
+            <span className="mt-3 text-xs text-ink-muted">Tap to reveal</span>
+          </span>
+          <span className="flip-face flip-face-back col-start-1 row-start-1 flex flex-col items-center justify-center gap-2 rounded-panel border border-brand-700 bg-brand-800 p-8 text-brand-50 shadow-raised">
+            <span className="font-display text-xl font-semibold text-white">{card.backEn}</span>
             {card.backUr && (
-              <div dir="rtl" className="mt-2 text-ink-muted">
+              <span dir="rtl" className="text-brand-100">
                 {card.backUr}
-              </div>
+              </span>
             )}
-          </>
-        )}
-      </button>
+            <span className="mt-3 text-xs text-brand-200">How did you do?</span>
+          </span>
+        </button>
+      </div>
       {flipped && (
         <div className="flex flex-wrap justify-center gap-2">
           {[
-            { q: 0, label: 'Again', cls: 'bg-red-600' },
-            { q: 3, label: 'Hard', cls: 'bg-amber-600' },
-            { q: 4, label: 'Good', cls: 'bg-blue-600' },
-            { q: 5, label: 'Easy', cls: 'bg-green-600' },
+            {
+              q: 0,
+              label: 'Again',
+              hint: 'Did not know it',
+              cls: 'bg-flare-500 hover:bg-flare-600 text-white',
+            },
+            {
+              q: 3,
+              label: 'Hard',
+              hint: 'Recalled with effort',
+              cls: 'bg-brass-500 hover:bg-brass-400 text-brand-950',
+            },
+            {
+              q: 4,
+              label: 'Good',
+              hint: 'Recalled it',
+              cls: 'bg-brand-600 hover:bg-brand-700 text-white',
+            },
+            {
+              q: 5,
+              label: 'Easy',
+              hint: 'Instant',
+              cls: 'bg-brand-500 hover:bg-brand-400 text-white',
+            },
           ].map((b) => (
             <button
               key={b.q}
               onClick={() => grade(b.q)}
-              className={`rounded px-4 py-2 text-sm text-white ${b.cls}`}
+              title={b.hint}
+              className={`rounded-pill px-5 py-2.5 text-sm font-medium transition-colors ${b.cls}`}
             >
               {b.label}
             </button>

@@ -1,0 +1,1 @@
+ALTER TABLE "gk_topics" ADD COLUMN "coverage_keywords" jsonb DEFAULT '[]'::jsonb NOT NULL;

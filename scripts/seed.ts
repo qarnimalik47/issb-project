@@ -22,6 +22,7 @@ import { STATIC_FLASHCARDS, SAMPLE_ARTICLES } from '../src/lib/db/seed-data/gk'
 import { TEST_TYPES } from '../src/lib/db/seed-data/test-types'
 import { SAMPLE_QUESTIONS } from '../src/lib/db/seed-data/sample-questions'
 import { CURATED_TOPICS } from '../src/lib/db/seed-data/gk-topics'
+import { CA_DOSSIERS } from '../src/lib/db/seed-data/ca-dossiers'
 import { upsertCuratedTopic, rebuildTopicFlashcards } from '../src/lib/gk/topics'
 import { VERBAL_QUESTIONS } from '../src/lib/db/seed-data/verbal-questions'
 import { GK_QUESTIONS } from '../src/lib/db/seed-data/gk-questions'
@@ -233,12 +234,12 @@ async function main() {
   // rebuilt from its facts so the deck never drifts from the page.
   let seededT = 0
   let topicCards = 0
-  for (const topic of CURATED_TOPICS) {
+  for (const topic of [...CURATED_TOPICS, ...CA_DOSSIERS]) {
     const row = await upsertCuratedTopic(topic)
     topicCards += await rebuildTopicFlashcards(row)
     seededT++
   }
-  console.warn(`✓ Seeded ${seededT} GK topic(s) and ${topicCards} topic flashcard(s).`)
+  console.warn(`✓ Seeded ${seededT} topic(s) and ${topicCards} topic flashcard(s).`)
 }
 
 try {

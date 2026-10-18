@@ -8,6 +8,7 @@ import { db } from '../db/index'
 import { subscriptions } from '../db/schema/billing'
 import { usageCounters } from '../db/schema/billing'
 import { ApiError } from '../api/errors'
+import { spendCredits } from './credits'
 import { entitlementsFor, type Entitlements, type PlanCode } from './plans'
 
 export async function getUserPlan(userId: string): Promise<PlanCode> {
@@ -73,4 +74,27 @@ export async function consumeQuota(userId: string, metric: 'ai_evaluation'): Pro
       target: [usageCounters.userId, usageCounters.metric, usageCounters.periodKey],
       set: { count: sql`${usageCounters.count} + 1`, updatedAt: new Date() },
     })
+}
+
+/**
+ * Claim one AI evaluation for a user, preferring the plan's daily allowance and
+ * falling back to their credit balance once that is used up. Returns which
+ * bucket paid for it so the caller can report it; throws `quota_exceeded` when
+ * neither can.
+ *
+ * This is the path real evaluations take. `assertQuota`/`consumeQuota` remain
+ * the plain plan-only primitives underneath it.
+ */
+export async function reserveEvaluation(userId: string): Promise<'plan' | 'credit'> {
+  const ent = await getEntitlements(userId)
+  const used = await currentCount(userId, 'ai_evaluation', dayKey())
+  if (used < ent.aiEvaluationsPerDay) {
+    await consumeQuota(userId, 'ai_evaluation')
+    return 'plan'
+  }
+  if (await spendCredits(userId, 1, 'AI evaluation (daily allowance used)')) return 'credit'
+  throw new ApiError(
+    'quota_exceeded',
+    'You have reached your evaluation limit for today. Upgrade your plan or top up credits for more.',
+  )
 }

@@ -363,4 +363,84 @@ export const DEFENCE_TOPICS: CuratedTopic[] = [
       },
     ],
   },
+
+  {
+    slug: 'military-firsts-of-pakistan',
+    kind: 'gk',
+    section: 'defence',
+    titleEn: 'Military firsts of Pakistan',
+    titleUr: 'پاکستان کی عسکری اولیات',
+    summaryEn:
+      'Who held each service appointment first, when command passed from British to Pakistani officers, and the other firsts of the armed forces that recur in general knowledge papers.',
+    issbAngle:
+      'Home ground, so the standard is higher: a wrong name here costs more than a wrong name anywhere else on the paper. Learn the four or five that matter, and say you are not certain rather than guessing at the rest.',
+    facts: [
+      { label: 'First Commander-in-Chief of the Army', value: 'General Sir Frank Messervy, 1947' },
+      {
+        label: 'First Pakistani Commander-in-Chief of the Army',
+        value: 'General Muhammad Ayub Khan, 1951',
+      },
+      { label: 'First Chief of Army Staff', value: 'General Tikka Khan, 1972' },
+      { label: 'First Field Marshal', value: 'Ayub Khan, 1959' },
+      {
+        label: 'First Commander-in-Chief of the Air Force',
+        value: 'Air Vice Marshal Allan Perry-Keene',
+      },
+      {
+        label: 'First Pakistani Commander-in-Chief of the Air Force',
+        value: 'Air Marshal Asghar Khan, 1957',
+      },
+      {
+        label: 'First Commander-in-Chief of the Navy',
+        value: 'Rear Admiral James Wilfred Jefford',
+      },
+      {
+        label: 'First Pakistani Commander-in-Chief of the Navy',
+        value: 'Vice Admiral Haji Mohammad Siddiq Choudri, 1953',
+      },
+      {
+        label: 'First Chairman of the Joint Chiefs of Staff Committee',
+        value: 'General Muhammad Shariff, 1976',
+      },
+      {
+        label: 'First recipient of the Nishan-e-Haider',
+        value: 'Captain Muhammad Sarwar Shaheed, 1948',
+      },
+      {
+        label: 'First Air Force recipient of the Nishan-e-Haider',
+        value: 'Pilot Officer Rashid Minhas Shaheed, 1971',
+      },
+      { label: 'First woman Major General', value: 'Dr Shahida Malik' },
+      { label: 'First woman Lieutenant General', value: 'Nigar Johar' },
+      { label: 'First rocket launch', value: 'Rehbar-I, 7 June 1962, from Sonmiani' },
+      { label: 'First satellite', value: 'Badr-1, 1990' },
+      { label: 'First nuclear tests', value: '28 May 1998, at Chagai' },
+    ],
+    points: [
+      {
+        heading: 'From British to Pakistani command',
+        bullets: [
+          'All three services were commanded by British officers at independence, because Pakistan had very few officers of sufficient seniority in 1947.',
+          'Ayub Khan became the first Pakistani Commander-in-Chief of the Army in 1951, Siddiq Choudri took the Navy in 1953 and Asghar Khan the Air Force in 1957 — the order is worth remembering, because the Army came first and the Air Force last.',
+          'The Chairman of the Joint Chiefs of Staff Committee was created as a coordinating appointment in 1976, with General Muhammad Shariff the first to hold it.',
+        ],
+      },
+      {
+        heading: 'Why the title changed in 1972',
+        bullets: [
+          'Until 1972 each service was headed by a Commander-in-Chief. After the 1971 war the appointment was renamed Chief of Staff, with General Tikka Khan the first Chief of Army Staff.',
+          'The change was constitutional rather than cosmetic: a Commander-in-Chief commands the force, while a Chief of Staff heads it under the government. That is the answer if a board asks why the title changed.',
+          'Ayub Khan remains the only officer promoted Field Marshal while serving, in 1959.',
+        ],
+      },
+      {
+        heading: 'Women in the services',
+        bullets: [
+          'Women have served in the medical and education branches since the early years, and in the general cadres, aviation and the Navy since the 2000s.',
+          'Dr Shahida Malik was the first woman promoted Major General, and Nigar Johar the first woman to reach Lieutenant General.',
+          'Pakistan commissioned its first women fighter pilots in the Air Force in the 2000s, and women officers have served on United Nations deployments.',
+        ],
+      },
+    ],
+  },
 ]

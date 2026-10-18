@@ -15,6 +15,37 @@ const log = childLogger('gk-ingest')
 
 export type FeedConfig = { url: string; category: string; sourceName: string }
 
+/**
+ * Free public RSS feeds, used when GK_FEEDS is not set.
+ *
+ * These are syndication feeds the publishers offer for exactly this purpose.
+ * We take the headline, the link and the date and nothing else — the body of a
+ * news article is the publisher's, and storing it would be a copyright problem
+ * as well as a rule break (§4.5). Al Jazeera's feed is not included because it
+ * is not reachable from every network.
+ */
+export const DEFAULT_FEEDS: FeedConfig[] = [
+  {
+    url: 'https://feeds.bbci.co.uk/news/world/rss.xml',
+    category: 'international',
+    sourceName: 'BBC News',
+  },
+  {
+    url: 'https://feeds.bbci.co.uk/news/world/asia/rss.xml',
+    category: 'international',
+    sourceName: 'BBC News Asia',
+  },
+  { url: 'https://www.dawn.com/feeds/home', category: 'pakistan', sourceName: 'Dawn' },
+  { url: 'https://www.thenews.com.pk/rss/1/1', category: 'pakistan', sourceName: 'The News' },
+  { url: 'https://arynews.tv/feed', category: 'pakistan', sourceName: 'ARY News' },
+  { url: 'https://www.geo.tv/rss/1/1', category: 'pakistan', sourceName: 'Geo News' },
+  {
+    url: 'https://tribune.com.pk/feed/home',
+    category: 'pakistan',
+    sourceName: 'The Express Tribune',
+  },
+]
+
 type RssItem = { title: string; link: string; pubDate?: string }
 
 /** Minimal, dependency-free RSS/Atom item extraction. */
@@ -44,23 +75,21 @@ function clean(s: string | undefined): string {
 }
 
 /**
- * Draft an ORIGINAL summary from an item's title only (we never copy source
- * body text). Placeholder drafting; a real AI provider can replace this behind
- * the same function. The editor MUST refine before publishing.
+ * A feed item is stored as a reference, not as prose.
+ *
+ * Nothing here invents a summary. The previous placeholder text read like a
+ * summary while saying nothing, which is worse than an empty field: a
+ * candidate skims it and believes they have read something. An editor writes
+ * the summary and the ISSB angle at approval time if the item deserves one,
+ * and the digest renders the headline alone until then.
  */
-function draftSummary(
-  title: string,
-  category: string,
-): { summaryEn: string; issbAngle: string; oneLiner: string } {
-  return {
-    summaryEn: `${title}. (Draft — editor to write an original 2–3 line summary before publishing.)`,
-    issbAngle: `Be ready to discuss the significance of this ${category} development and its implications for Pakistan.`,
-    oneLiner: `${title} — know the key facts and your balanced view.`,
-  }
+function draftRecord(): { summaryEn: string; issbAngle: null; oneLiner: null } {
+  return { summaryEn: '', issbAngle: null, oneLiner: null }
 }
 
 export async function ingestFeeds(
   feeds: FeedConfig[],
+  opts: { publish?: boolean; perFeed?: number } = {},
 ): Promise<{ drafted: number; skipped: number; failed: number }> {
   let drafted = 0
   let skipped = 0
@@ -78,7 +107,7 @@ export async function ingestFeeds(
         continue
       }
       const xml = await res.text()
-      const items = parseRss(xml).slice(0, 15)
+      const items = parseRss(xml).slice(0, opts.perFeed ?? 15)
       for (const item of items) {
         if (!item.link) continue
         const [existing] = await db
@@ -90,7 +119,7 @@ export async function ingestFeeds(
           skipped++
           continue
         }
-        const d = draftSummary(item.title, feed.category)
+        const d = draftRecord()
         await db.insert(gkArticles).values({
           headline: item.title,
           summaryEn: d.summaryEn,
@@ -100,7 +129,10 @@ export async function ingestFeeds(
           sourceName: feed.sourceName,
           sourceUrl: item.link,
           publishedDate: item.pubDate ? safeDate(item.pubDate) : null,
-          status: 'draft',
+          // A headline and a link carry no editorial claim of our own, so an
+          // operator may publish them directly; anything with written summary
+          // text still goes through review.
+          status: opts.publish ? 'published' : 'draft',
         })
         drafted++
       }

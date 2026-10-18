@@ -6,6 +6,7 @@ import { and, eq, lt, isNotNull } from 'drizzle-orm'
 import { db } from '../db/index'
 import { payments, invoices, subscriptions } from '../db/schema/billing'
 import { PLANS, type PlanCode } from './plans'
+import { applyCredits } from './credits'
 import { generateGatewayRef, type Gateway } from './gateways'
 import { childLogger } from '../logger/index'
 
@@ -102,6 +103,18 @@ export async function activateSubscription(userId: string, planCode: PlanCode): 
     await db
       .insert(subscriptions)
       .values({ userId, planCode, status: 'active', currentPeriodEnd: periodEnd })
+  }
+
+  // Each activation or renewal tops the plan's credit allowance back up.
+  const monthly = PLANS[planCode].entitlements.monthlyCredits
+  if (monthly > 0) {
+    await applyCredits({
+      userId,
+      delta: monthly,
+      kind: 'plan_renewal',
+      reason: `${PLANS[planCode].nameEn} plan allowance`,
+      metadata: { planCode },
+    })
   }
 }
 

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export function SignOutButton({ label }: { label: string }) {
+export function SignOutButton({ label, className }: { label: string; className?: string }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   async function signOut() {
@@ -16,7 +16,9 @@ export function SignOutButton({ label }: { label: string }) {
     <button
       onClick={signOut}
       disabled={busy}
-      className="text-sm font-medium text-ink-muted hover:text-flare-500 disabled:opacity-55"
+      className={
+        className ?? 'text-sm font-medium text-ink-muted hover:text-flare-500 disabled:opacity-55'
+      }
     >
       {label}
     </button>

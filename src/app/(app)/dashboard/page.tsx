@@ -77,7 +77,7 @@ export default async function DashboardPage() {
       )}
 
       <section className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-        <Panel className="flex flex-col justify-between gap-8">
+        <Panel className="rise flex flex-col justify-between gap-8">
           <div>
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-brass-400" aria-hidden="true" />
@@ -106,7 +106,10 @@ export default async function DashboardPage() {
           </div>
         </Panel>
 
-        <Card className="flex flex-col justify-center gap-6 p-6">
+        <Card
+          className="rise flex flex-col justify-center gap-6 p-6"
+          style={{ '--i': 1 } as React.CSSProperties}
+        >
           <div className="flex items-start justify-between gap-4">
             <Stat value={completed} label={d.completed} />
             {openRow && <Badge tone="brass">{d.inProgress}</Badge>}
@@ -126,11 +129,15 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-ink-muted">{d.objectiveLede}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {rows.map((r) => {
+          {rows.map((r, i) => {
             const last = lastPercentage.get(r.id)
             const open = resumable.has(r.id)
             return (
-              <Card key={r.id} className="flex flex-col gap-4">
+              <Card
+                key={r.id}
+                className="rise lift flex flex-col gap-4"
+                style={{ '--i': i + 2 } as React.CSSProperties}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-display leading-snug font-semibold text-ink">{name(r)}</h3>
                   {open && <Badge tone="brass">{t.practice.inProgress}</Badge>}
@@ -181,7 +188,7 @@ export default async function DashboardPage() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-card border border-line bg-surface p-5 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
+              className="rise lift rounded-card border border-line bg-surface p-5 shadow-card hover:border-brand-300"
             >
               <h3 className="font-display font-semibold text-ink">{item.label}</h3>
               <p className="mt-1.5 text-sm text-ink-muted">{item.blurb}</p>

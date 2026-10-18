@@ -191,6 +191,7 @@ export const PAKISTAN_TOPICS: CuratedTopic[] = [
         bullets: [
           'Relations with the United States have alternated between close alignment and estrangement, driven mostly by Afghanistan.',
           'Saudi Arabia and the United Arab Emirates matter for financial support and because millions of Pakistanis work there.',
+          'Pakistan and Saudi Arabia signed a strategic mutual defence agreement in September 2025, formalising a security relationship that had been understood rather than written down for decades.',
         ],
       },
       {

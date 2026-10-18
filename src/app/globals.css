@@ -87,6 +87,8 @@
 
   --animate-question-in: question-in 180ms var(--ease-exam) both;
   --animate-pulse-danger: pulse-danger 1.4s ease-in-out infinite;
+  --animate-rise: rise 460ms var(--ease-exam) both;
+  --animate-fade-in: fade-in 320ms ease both;
 }
 
 /* ---------------------------------------------------------------------------
@@ -121,6 +123,27 @@
 
   /* Opacity of the field-paper grid on the canvas. */
   --grid-alpha: 0.5;
+
+  /* Chart marks.
+     The UI ramps are deliberately low-chroma, which is right for a surface and
+     wrong for a 2px line: brand-500 fails the chroma floor (C 0.086) and reads
+     grey once it is a hairline on sand. These are the nearest steps that pass
+     the categorical checks — lightness band, chroma floor, CVD separation and
+     3:1 against the card — in this mode. Two slots only: the status hues below
+     are reserved for state and are never spent on a third series.
+     Validated: adjacent CVD dE 9.1 protan, normal-vision 20.7. */
+  --chart-1: #07855c;
+  --chart-2: #c1872b;
+  /* Plan tiers are ordinal (free < paid < premium), so they take one hue in
+     monotone steps rather than three identities. */
+  --chart-tier-1: #7fb9a1;
+  --chart-tier-2: #2a755a;
+  --chart-tier-3: #0e3928;
+  /* State. Always shipped with a label, never colour alone. */
+  --chart-good: #07855c;
+  --chart-warning: #c1872b;
+  --chart-critical: #b3452c;
+  --chart-grid: var(--line);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -134,6 +157,18 @@
     --ink: #edf2ee;
     --ink-muted: #9aa8a0;
     --grid-alpha: 0.35;
+
+    /* Dark is chosen, not flipped: its own steps from the same hues, validated
+       against the dark card surface (#141e19). Brass has to come down a step —
+       at L 0.72 it sits above the dark lightness band. */
+    --chart-1: #12a273;
+    --chart-2: #bb8420;
+    --chart-tier-1: #1a6044;
+    --chart-tier-2: #3f8a6c;
+    --chart-tier-3: #7fb9a1;
+    --chart-good: #12a273;
+    --chart-warning: #bb8420;
+    --chart-critical: #d2593a;
   }
 }
 
@@ -177,6 +212,108 @@ body {
   margin-top: 0.75rem;
   border-radius: 999px;
   background: var(--color-brass-500);
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion.
+ *
+ * One orchestrated entrance per screen and one response per interaction —
+ * nothing that moves on its own afterwards. Every rule here is switched off
+ * wholesale by the reduced-motion block at the foot of this file, so the
+ * classes are safe to use anywhere.
+ * ------------------------------------------------------------------------ */
+
+/* Content arrives from just below its resting place. `--i` staggers a list:
+   set it per item and each one follows the last by a beat. */
+.rise {
+  animation: rise 460ms var(--ease-exam) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A card answers the pointer by lifting slightly. The shadow grows with it,
+   because a card that rises without its shadow changing looks flat. */
+.lift {
+  transition:
+    transform 220ms var(--ease-exam),
+    box-shadow 220ms var(--ease-exam),
+    border-color 220ms ease;
+}
+
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-raised);
+}
+
+/* Underline that draws itself from the leading edge on hover. */
+.underline-grow {
+  background-image: linear-gradient(var(--color-brass-500), var(--color-brass-500));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  transition: background-size 260ms var(--ease-exam);
+}
+
+.underline-grow:hover {
+  background-size: 100% 2px;
+}
+
+/* Flashcard flip. The scene holds the perspective; the card rotates inside it
+   and each face hides its own back. */
+.flip-scene {
+  perspective: 1400px;
+}
+
+.flip-card {
+  transform-style: preserve-3d;
+  transition: transform 520ms var(--ease-exam);
+}
+
+.flip-card[data-flipped='true'] {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-face-back {
+  transform: rotateY(180deg);
+}
+
+/* A progress bar fills to its value once, on load. */
+.bar-fill {
+  animation: bar-fill 720ms var(--ease-exam) both;
+  animation-delay: 120ms;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* Urdu / RTL typography.
@@ -244,6 +381,17 @@ dialog::backdrop {
 /* The final-minute timer pulse is exactly the kind of motion that triggers
    vestibular symptoms, and it fires at the most stressful moment of the test. */
 @media (prefers-reduced-motion: reduce) {
+  /* The flip becomes an instant swap rather than a half-finished rotation. */
+  .flip-card,
+  .flip-card[data-flipped='true'] {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .flip-face-back {
+    transform: none !important;
+  }
+
   *,
   *::before,
   *::after {

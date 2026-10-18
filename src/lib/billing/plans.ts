@@ -9,6 +9,9 @@ export type Entitlements = {
   mockInterviewsPerMonth: number
   expertReviewsPerMonth: number
   unlimitedMcq: boolean
+  /** Credits topped up each time the plan is activated or renewed. Credits are
+   *  the overflow once the daily allowance is spent — see billing/credits.ts. */
+  monthlyCredits: number
 }
 
 export type PlanCode = 'free' | 'paid' | 'premium'
@@ -34,6 +37,7 @@ export const PLANS: Record<
       mockInterviewsPerMonth: 0,
       expertReviewsPerMonth: 0,
       unlimitedMcq: false,
+      monthlyCredits: 0,
     },
   },
   paid: {
@@ -46,6 +50,7 @@ export const PLANS: Record<
       mockInterviewsPerMonth: 10,
       expertReviewsPerMonth: 0,
       unlimitedMcq: true,
+      monthlyCredits: 100,
     },
   },
   premium: {
@@ -58,6 +63,7 @@ export const PLANS: Record<
       mockInterviewsPerMonth: 30,
       expertReviewsPerMonth: 4,
       unlimitedMcq: true,
+      monthlyCredits: 400,
     },
   },
 }

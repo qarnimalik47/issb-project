@@ -22,7 +22,8 @@ import {
 import { buildOutputSchema, averageScore, type EvaluationOutput } from './schema'
 import { selectProviders, type EvalProvider, type EvalRequest } from './providers'
 import { enqueue, QUEUE_NAMES } from '../queue/index'
-import { assertQuota, consumeQuota, getEntitlements } from '../billing/quota'
+import { getEntitlements, reserveEvaluation } from '../billing/quota'
+import { getBalance } from '../billing/credits'
 import { ApiError } from '../api/errors'
 
 const log = childLogger('eval')
@@ -295,10 +296,10 @@ export async function requestEvaluation(
   if (evaluable.length === 0) throw new ApiError('bad_request', 'No responses to evaluate')
 
   const ent = await getEntitlements(userId)
-  if (ent.aiEvaluationsPerDay <= 0) {
+  if (ent.aiEvaluationsPerDay <= 0 && (await getBalance(userId)) <= 0) {
     throw new ApiError(
       'quota_exceeded',
-      'AI evaluation is not included in your plan. Please upgrade.',
+      'AI evaluation is not included in your plan. Please upgrade or top up credits.',
     )
   }
 
@@ -306,12 +307,12 @@ export async function requestEvaluation(
   let skippedForQuota = 0
   for (const r of evaluable) {
     try {
-      await assertQuota(userId, 'ai_evaluation')
+      // Spends the plan's daily allowance first, then the user's credits.
+      await reserveEvaluation(userId)
     } catch {
       skippedForQuota++
       continue
     }
-    await consumeQuota(userId, 'ai_evaluation')
     await enqueue(
       QUEUE_NAMES.evaluation,
       'evaluate',

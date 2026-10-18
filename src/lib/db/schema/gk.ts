@@ -145,6 +145,8 @@ export const gkTopics = pgTable(
     timeline: jsonb('timeline').$type<GkTimelineEntry[]>().notNull().default([]),
     sources: jsonb('sources').$type<GkSource[]>().notNull().default([]),
     coverage: jsonb('coverage').$type<GkCoverage[]>().notNull().default([]),
+    /** Extra words to match headlines on, where the title alone is too generic. */
+    coverageKeywords: jsonb('coverage_keywords').$type<string[]>().notNull().default([]),
     /** 'curated' = written by us and seeded; 'gathered' = built by the job. */
     origin: text('origin').notNull().default('curated'),
     /** Which model wrote the narrative, or null when facts-only. */

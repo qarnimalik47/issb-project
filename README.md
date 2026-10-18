@@ -40,8 +40,11 @@ What's built:
   interview, GD/GPE, GTO explainers.
 - **GK** — SM-2 flashcards, RSS ingestion, editorial approval, digest, quizzes.
 - **Payments/ops** — mock + JazzCash/Easypaisa gateways, idempotent webhooks,
-  subscriptions, invoices, refunds, expert-review queue, admin dashboard,
+  subscriptions, invoices, refunds, expert-review queue, credit ledger,
   incident runbook.
+- **Admin panel** (`/admin`) — its own full-width shell with a business
+  dashboard, user administration, billing, credits, provider integrations,
+  issued API keys, system health and the audit trail. See below.
 - **Mobile** — Expo/React Native app (`mobile/`) consuming the same API with
   offline flashcards/digest and queued submission sync.
 
@@ -150,10 +153,20 @@ counts. See `docs/ARCHITECTURE.md` for the exact procedure.
 
 ```
 src/
-  app/                 Next.js App Router (pages, layout, error boundaries, /api/health)
+  app/
+    (app)/             candidate-facing shell
+    (admin)/           admin panel shell (full width, own nav and auth boundary)
+    (auth)/ (exam)/    sign-in and distraction-free exam shells
+    api/               route handlers
+  components/
+    admin/             admin screens, shell, shared table/figure primitives
+    ui/                design-system primitives shared across shells
   lib/
     env/               Zod-validated environment config (fail-fast)
     db/                Drizzle client + schema
+    admin/             user administration, metrics, integrations, API clients
+    billing/           plans, quota, subscriptions, credit ledger
+    crypto/            AES-256-GCM envelope for secrets stored in the database
     redis/             ioredis client (dedicated DB index)
     logger/            pino structured JSON logging (secrets redacted)
     health/            dependency health checks
@@ -164,6 +177,42 @@ tests/
   e2e/                 Playwright end-to-end tests
 docs/                  ARCHITECTURE, PORTS, SECURITY, CONTRIBUTING, DATABASE, ADRs, backlog
 ```
+
+---
+
+## Admin panel
+
+`/admin` is a separate route group (`src/app/(admin)/`) with its own shell: a
+dark navigation rail, full desktop width, and an authorisation boundary at the
+layout. Admins see everything; content editors see only the content screens.
+
+| Screen                | What it is for                                                           |
+| --------------------- | ------------------------------------------------------------------------ |
+| `/admin`              | Signups, revenue, active users, AI spend, conversion, alerts, health     |
+| `/admin/users`        | Roster with filters; a drawer per account for plan, credits, role, state |
+| `/admin/billing`      | Payments, refunds, invoices, gateway mix, plan pricing and entitlements  |
+| `/admin/credits`      | Credit ledger, balances, and bulk grants by email or by plan             |
+| `/admin/integrations` | Provider credentials, connection tests, AI and gateway usage             |
+| `/admin/api-keys`     | Issue and revoke inbound API keys with scopes and per-key rate limits    |
+| `/admin/system`       | Dependency health, queue depth, storage, backups, pipeline backlog       |
+| `/admin/audit`        | Every administrative action, append-only                                 |
+
+Three rules the code depends on:
+
+- **Credits are overflow, not the meter.** One credit buys one AI evaluation,
+  and only once the plan's daily allowance is spent — so a credit balance can
+  never make a candidate worse off. Every movement writes to `credit_ledger`
+  in the same transaction as the cached balance
+  (`src/lib/billing/credits.ts`).
+- **Integration secrets are write-only.** Credentials are encrypted with
+  AES-256-GCM (`src/lib/crypto/secrets.ts`) and API responses carry a mask,
+  never the value. A stored credential overrides the matching environment
+  variable, so keys can be rotated without a redeploy; with nothing stored the
+  `.env` value still wins.
+- **Inbound API keys are hashed.** The plaintext is returned once, at creation,
+  and never again — only a SHA-256 hash and the public prefix are stored.
+
+Promote an account with `npm run set-role -- you@example.com admin`.
 
 ---
 
